@@ -20,7 +20,6 @@ local_dbname=""
 local_dbuser=""
 local_root_url=""
 local_root_fs=""
-logfile="majbdlocale.log"
 
 # TRAITEMENTS
 # echappement des variables : caracteres '.' et '/'
@@ -32,8 +31,9 @@ local_root_url_escaped=`echo "$local_root_url" | sed 's/\//\\\\\//g'`
 local_hostname_escaped=`echo "$local_hostname" | sed 's/\//\\\\\//g'`
 dist_root_fs_escaped=`echo "$dist_root_fs"     | sed 's/\//\\\\\//g'`
 local_root_fs_escaped=`echo "$local_root_fs"   | sed 's/\//\\\\\//g'`
-sqlfile="$dist_dbname$curdate.sql"
-pathtolog="$(readlink -f $logfile)"
+sqlfile="$(dirname $0)/$dist_dbname$curdate.sql"
+logfile="$(dirname $0)/majbdlocale.log"
+resilient_replace="$(dirname $0)/resilient_replace"
 
 # dump de la base distante à travers SSH
 MSG="1/5 : dump de la base distante (tunnel SSH)";
@@ -47,8 +47,8 @@ printf "%${COL}s\n" "OK"
 # remplacement des URL et chemins (même sérialisés)
 MSG="2/5 : remplacement des URL et chemins (même sérialisés)";
 echo -n "$MSG"
-./resilient_replace -i "$dist_root_url_escaped" "$local_root_url" $sqlfile
-./resilient_replace -i "$dist_root_fs_escaped" "$local_root_fs" $sqlfile
+$resilient_replace -i "$dist_root_url_escaped" "$local_root_url" $sqlfile
+$resilient_replace -i "$dist_root_fs_escaped" "$local_root_fs" $sqlfile
 let COL=70-${#MSG}
 printf "%${COL}s\n" "OK"
 
@@ -73,6 +73,6 @@ cat $sqlfile | \
 # synchro des dossiers media
 MSG="5/5 : synchro des dossiers"
 echo -n "$MSG"
-# rsync -vrpz --exclude=".svn/*" $dist_unixuser@$server:$dist_root_fs/files/ $local_root_fs/files/ >> $pathtolog && \
+# rsync -vrpz --exclude=".svn/*" $dist_unixuser@$server:$dist_root_fs/files/ $local_root_fs/files/ >> $logfile && \
 let COL=70-${#MSG}
 printf "%${COL}s\n" "OK"
