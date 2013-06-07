@@ -1,0 +1,28 @@
+# chemins
+path_to_mysql=/usr/bin/mysql
+path_to_rsync=/usr/bin/rsync
+path_to_php="/usr/bin/php" 
+path_to_resilient_replace="$(dirname $0)/bin/resilient_replace"
+logfile="$(dirname $0)/log/majbdlocale.log"
+
+# connexion en ssh (au serveur distant)
+server=""
+dist_unixuser=""
+
+# serveur distant (= source)
+dist_dbname=""
+dist_dbuser="$dist_unixuser"
+dist_hostname=""
+dist_root_url=""
+dist_root_fs=""
+sql_options="--default-character-set=utf8"
+sql_ignores="--ignore-table=$dist_dbname.ps_connections_source --ignore-table=$dist_dbname.ps_connections"
+
+# local (= destination)
+local_dbname=""
+local_dbuser=""
+local_root_url=""
+local_root_fs=""
+
+# scripts personnalises a appliquer avant et apres import de la BD 
+# mettez ce que vous voulez dans hook/before/*.sh et hook/after/*.sh

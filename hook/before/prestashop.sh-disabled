@@ -1,0 +1,8 @@
+#/bin/bash
+MSG="      - adaptations pour Prestashop";
+echo -n "$MSG"
+# MAJ la config des noms de domaine dans la BD et vide les caches
+sed -i "s/'PS_SHOP_DOMAIN','[^\']*\?'/'PS_SHOP_DOMAIN','$local_hostname'/g" $sqlfile && \
+    sed -i "s/'PS_SHOP_DOMAIN_SSL','[^\']*\?'/'PS_SHOP_DOMAIN_SSL','$local_hostname'/g" $sqlfile && \
+    rm -rf tools/smarty/compile/* && \
+    rm -rf cache/cachefs/*
