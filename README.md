@@ -34,6 +34,12 @@ Une fois la configuration effectuées, il suffit de lancer le script sync :
 $ ./sync
 ```
 
+***Astuce*** : Si votre clé SSH est protégée par mot de passe et que vous êtes en SSH, pensez à :
+
+```bash
+$ eval "$(ssh-agent)"
+```
+
 Fonctionnement
 ---
 
