@@ -9,20 +9,27 @@ Configuration
 La configuration des accès se fait dans le fichier ```/etc/config```
 
 Afin de ne pas rendre visibles les mots de passe en clair, et pour une utilisation conviviale :
+
 * configurez l'accès SSH par clés :
+
 ```bash
 $ ssh-copy-id user@server
 ```
+
 * configurez les fichiers ```.my.cnf``` dans votre dossier ```$HOME``` et dans celui de l'hebergement
+
 ```ini
 [client]
 password=********
 ```
 
+Vous pouvez ajouter des scripts à appliquer avant / après l'import de la base de données dans le dossier ```/hook```
+
 Utilisation
 ---
 
 Une fois la configuration effectuées, il suffit de lancer le script sync :
+
 ```bash
 $ ./sync
 ```
