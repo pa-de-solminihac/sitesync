@@ -17,7 +17,7 @@ sqlfile="$(dirname $0)/tmp/$dist_dbname$curdate.sql"
 MSG="1/5 : dump de la base distante (tunnel SSH)";
 echo -n "$MSG"
 echo "DROP DATABASE IF EXISTS $local_dbname; CREATE DATABASE $local_dbname; USE $local_dbname; " > $sqlfile && \
-    ssh $dist_unixuser@$server "(/usr/bin/mysqldump --opt -R --no-data $sql_options -u $dist_dbuser $dist_dbname && /usr/bin/mysqldump --opt -R $sql_options $sql_ignores -u $dist_dbuser $dist_dbname) | gzip" | gunzip \
+    ssh $dist_unixuser@$server "($remote_path_to_mysqldump --opt -R --no-data $sql_options -u $dist_dbuser $dist_dbname && $remote_path_to_mysqldump --opt -R $sql_options $sql_ignores -u $dist_dbuser $dist_dbname) | gzip" | gunzip \
         >> $sqlfile
 let COL=70-${#MSG}
 printf "%${COL}s\n" "OK"
@@ -25,8 +25,8 @@ printf "%${COL}s\n" "OK"
 # remplacement des URL et chemins (même sérialisés)
 MSG="2/5 : remplacement des URL et chemins (meme serialises)";
 echo -n "$MSG"
-$path_to_php $path_to_resilient_replace -i "$dist_root_url_escaped" "$local_root_url" $sqlfile
-$path_to_php $path_to_resilient_replace -i "$dist_root_fs_escaped" "$local_root_fs" $sqlfile
+$local_path_to_php $local_path_to_resilient_replace -i "$dist_root_url_escaped" "$local_root_url" $sqlfile
+$local_path_to_php $local_path_to_resilient_replace -i "$dist_root_fs_escaped" "$local_root_fs" $sqlfile
 let COL=70-${#MSG}
 printf "%${COL}s\n" "OK"
 
@@ -56,7 +56,7 @@ fi
 MSG="4/5 : import de la base de donnees"
 echo -n "$MSG"
 cat $sqlfile | \
-    $path_to_mysql -u $local_dbuser $local_dbname --show-warnings > $logfile && \
+    $local_path_to_mysql -u $local_dbuser $local_dbname --show-warnings > $logfile && \
     rm -f $sqlfile && \
     let COL=70-${#MSG} && \
     printf "%${COL}s\n" "OK"

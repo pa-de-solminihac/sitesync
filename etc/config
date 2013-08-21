@@ -1,8 +1,9 @@
 # chemins
-path_to_mysql=/usr/bin/mysql
-path_to_rsync=/usr/bin/rsync
-path_to_php="/usr/bin/php" 
-path_to_resilient_replace="$(dirname $0)/bin/resilient_replace"
+remote_path_to_mysqldump=/usr/bin/mysqldump
+local_path_to_mysql=/usr/bin/mysql
+local_path_to_rsync=/usr/bin/rsync
+local_path_to_php="/usr/bin/php" 
+local_path_to_resilient_replace="$(dirname $0)/bin/resilient_replace"
 logfile="$(dirname $0)/log/majbdlocale.log"
 
 # connexion en ssh (au serveur distant)
