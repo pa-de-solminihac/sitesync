@@ -2,6 +2,15 @@
 
 source $(dirname $0)/etc/config
 
+if [ $enable_gzip -gt 0 ];
+then
+    DO_GZIP="gzip"
+    DO_GUNZIP="gunzip"
+else
+    DO_GZIP="cat"
+    DO_GUNZIP="cat"
+fi
+
 # echappement des variables : caracteres '.' et '/'
 curdate=`date +%Y%m%d%H%M%S`
 local_hostname=`echo "$local_root_url"         | sed 's/\/.*//g'`
@@ -17,7 +26,7 @@ sqlfile="$(dirname $0)/tmp/$dist_dbname$curdate.sql"
 MSG="1/5 : dump de la base distante (tunnel SSH)";
 echo -n "$MSG"
 echo "DROP DATABASE IF EXISTS $local_dbname; CREATE DATABASE $local_dbname; USE $local_dbname; " > $sqlfile && \
-    ssh $dist_unixuser@$server "($remote_path_to_mysqldump --opt -R --no-data $sql_options -u $dist_dbuser $dist_dbname && $remote_path_to_mysqldump --opt -R $sql_options $sql_ignores -u $dist_dbuser $dist_dbname) | gzip" | gunzip \
+    ssh $dist_unixuser@$server "($remote_path_to_mysqldump --opt -R --no-data $sql_options -u $dist_dbuser $dist_dbname && $remote_path_to_mysqldump --opt -R $sql_options $sql_ignores -u $dist_dbuser $dist_dbname) | $DO_GZIP" | $DO_GUNZIP \
         >> $sqlfile
 let COL=70-${#MSG}
 printf "%${COL}s\n" "OK"
@@ -33,7 +42,7 @@ printf "%${COL}s\n" "OK"
 # adaptation spécifiques
 MSG="3/5 : adaptations avant import (fichiers hook/before/*.sh)";
 # applique les fichiers dans hook
-echo "$MSG"
+echo -n "$MSG"
 
 # teste s'il y a des fichiers .sh
 shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
@@ -42,6 +51,7 @@ files=(hook/before/*.sh);
 # s'il y a des fichiers .sh
 if [ ${#files[@]} -gt 0 ];
 then
+    echo
     for fich in hook/before/*.sh; 
     do
         source $fich;
@@ -49,7 +59,8 @@ then
         printf "%${COL}s\n" "OK"
     done
 else
-    echo "      rien a faire"
+    let COL=70-${#MSG}
+    printf "%${COL}s\n" ".."
 fi
 
 # importe la BD modifiee
@@ -63,7 +74,7 @@ cat $sqlfile | \
 
 MSG="5/5 : adaptations apres import (fichiers hook/after/*.sh)";
 # applique les fichiers dans hook
-echo "$MSG"
+echo -n "$MSG"
 # teste s'il y a des fichiers .sh
 shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
 files=(hook/after/*.sh); 
@@ -71,6 +82,7 @@ files=(hook/after/*.sh);
 # s'il y a des fichiers .sh
 if [ ${#files[@]} -gt 0 ];
 then
+    echo
     for fich in hook/after/*.sh; 
     do
         source $fich;
@@ -78,6 +90,7 @@ then
         printf "%${COL}s\n" "OK"
     done
 else
-    echo "      rien a faire"
+    let COL=70-${#MSG}
+    printf "%${COL}s\n" ".."
 fi
 

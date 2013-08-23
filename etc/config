@@ -9,6 +9,8 @@ logfile="$(dirname $0)/log/majbdlocale.log"
 # connexion en ssh (au serveur distant)
 server=""
 dist_unixuser=""
+# compression du dump côté serveur pour rendre le transfert plus rapide
+enable_gzip=1
 
 # serveur distant (= source)
 dist_dbname=""
@@ -17,7 +19,11 @@ dist_hostname=""
 dist_root_url=""
 dist_root_fs=""
 sql_options="--default-character-set=utf8"
-sql_ignores="--ignore-table=$dist_dbname.ps_connections_source --ignore-table=$dist_dbname.ps_connections"
+# pour accélérer le processus, on peut ignorer le contenu de certaines tables
+sql_ignores=" \
+    --ignore-table=$dist_dbname.ps_connections_source \
+    --ignore-table=$dist_dbname.ps_connections \
+"
 
 # local (= destination)
 local_dbname=""
