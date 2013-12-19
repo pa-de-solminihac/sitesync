@@ -2,4 +2,4 @@
 MSG="    - synchro du dossier /files";
 echo -n "$MSG"
 # MAJ la config des noms de domaine dans la BD et vide les caches
-$local_path_to_rsync -vrpz --exclude=".svn/*" $dist_unixuser@$server:$dist_root_fs/files/ $local_root_fs/files/ >> $logfile
+$dst_path_to_rsync -vrpz --exclude=".svn/*" $src_unixuser@$src_server:$src_root_fs/files/ $dst_root_fs/files/ >> $logfile

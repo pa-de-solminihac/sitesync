@@ -1,0 +1,40 @@
+src_type="remote_base" # ou récupérer les données : local_file|local_base|remote_file|remote_base
+# si local_file ou remote_file, il faut le chemin vers le fichier
+src_file="/path/to/dump.sql.7z"
+# si src_type=*_base : compression à la volée, si src_type=*_file, prise en charge des fichiers compressés
+compress=1
+
+# connexion en ssh (au serveur source)
+src_server="www.site.com"
+src_unixuser="username"
+
+# source (= serveur distant par exemple)
+src_root_url="http://www.site.com"
+src_root_fs="/path/to/document/root"
+src_hostname="localhost"
+src_dbname="dbname"
+src_dbuser="dbuser"
+sql_options="--skip-lock-tables --default-character-set=utf8"
+# pour accélérer le processus, on peut ignorer le contenu de certaines tables
+sql_ignores=""
+
+# local (= destination)
+dst_root_url="http://localhost/upnbiz_gfi"
+dst_root_fs="/path/to/local/document/root"
+dst_hostname=`echo "$dst_root_url" | sed 's/\/.*//g'`
+dst_dbname="dbname"
+dst_dbuser="dbuser"
+
+# chemins
+src_path_to_mysqldump=/usr/bin/mysqldump
+dst_path_to_mysqldump=/usr/bin/mysqldump
+dst_path_to_mysql=/usr/bin/mysql
+dst_path_to_rsync=/usr/bin/rsync
+dst_path_to_php="/usr/bin/php" 
+dst_path_to_resilient_replace="$(dirname $0)/bin/resilient_replace"
+logfile="$(dirname $0)/log/majbdlocale.log"
+
+# scripts personnalises a appliquer avant et apres import de la BD :
+# mettez ce que vous voulez dans ./hook/before/*.sh et ./hook/after/*.sh
+
+# vim: filetype=sh
