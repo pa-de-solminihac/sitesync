@@ -1,5 +1,24 @@
 #/bin/bash
+
+# TODO: chercher-remplacer basés sur des tableaux utilisables pour les URL, les chemins, les noms d'hôtes...
+# TODO: synchronisation de dossiers basée sur des tableaux
+declare -A replace_src
+declare -A replace_dst
+declare -A sync_src
+declare -A sync_dst
+
 source $(dirname $0)/etc/config
+
+if [ "${#replace_src[@]}" != "${#replace_dst[@]}" ];
+then
+    echo "Incohérence dans les remplacements demandés, vérifiez les tableaux 'replace_src' et 'replace_dst' dans le fichier $(dirname $0)/etc/config"
+fi
+
+if [ "${#sync_src[@]}" != "${#sync_dst[@]}" ];
+then
+    echo "Incohérence dans les synchronisations demandées, vérifiez les tableaux 'sync_src' et 'sync_dst' dans le fichier $(dirname $0)/etc/config"
+fi
+
 # activation compression, selon le type de source (gzip supporté globalement, 7z uniquement en remote_file ou local_file) a cause des ses limitations
 if [ $compress -gt 0 ];
 then
@@ -24,19 +43,15 @@ then
             DO_GUNZIP="gunzip"
             ;;
     esac
+    RSYNC_OPTIONS="-vrpz"
 else
     DO_GZIP="cat"
     DO_GUNZIP="cat"
+    RSYNC_OPTIONS="-vrp"
 fi
 
 # echappement des variables : caracteres '.' et '/'
 curdate=`date +%Y%m%d%H%M%S`
-src_root_url_escaped=`echo "$src_root_url"   | sed 's/\//\\\\\//g'`
-src_hostname_escaped=`echo "$src_hostname"   | sed 's/\//\\\\\//g'`
-dst_root_url_escaped=`echo "$dst_root_url"   | sed 's/\//\\\\\//g'`
-dst_hostname_escaped=`echo "$dst_hostname"   | sed 's/\//\\\\\//g'`
-src_root_fs_escaped=`echo "$src_root_fs"     | sed 's/\//\\\\\//g'`
-dst_root_fs_escaped=`echo "$dst_root_fs"     | sed 's/\//\\\\\//g'`
 sqlfile="$(dirname $0)/tmp/$src_dbname$curdate.sql"
 sqlfile_tmp="$(dirname $0)/tmp/$src_dbname.sql-tmp.$src_file_extension"
 sqlfile_backup="$(dirname $0)/tmp/$src_dbname.sql"
@@ -46,28 +61,28 @@ echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst
 RECUP_KO=1
 case "$src_type" in 
     "remote_file")
-        MSG="1/5 : récupération du fichier dump (distant)";
+        MSG="1/6 : récupération du fichier dump (distant)";
         echo -n "$MSG"
         ssh $src_unixuser@$src_server "$DO_GZIP $src_file" >> $sqlfile_tmp && $DO_GUNZIP $sqlfile_tmp 2>/dev/null \
             >> $sqlfile && rm -f $sqlfile_tmp
         RECUP_KO=$?
         ;;
     "local_file")
-        MSG="1/5 : récupération du fichier dump (local : $src_file)";
+        MSG="1/6 : récupération du fichier dump (local : $src_file)";
         echo -n "$MSG"
         $DO_GUNZIP $src_file 2>/dev/null \
             >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
         RECUP_KO=$?
         ;;
     "remote_base")
-        MSG="1/5 : dump de la base (distante)";
+        MSG="1/6 : dump de la base (distante)";
         echo -n "$MSG"
         ssh $src_unixuser@$src_server "($src_path_to_mysqldump --opt -R --no-data $sql_options -u $src_dbuser $src_dbname && $src_path_to_mysqldump --opt -R $sql_options $sql_ignores -u $src_dbuser $src_dbname) | $DO_GZIP" | $DO_GUNZIP \
             >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
         RECUP_KO=$?
         ;;
     "local_base")
-        MSG="1/5 : dump de la base (locale)";
+        MSG="1/6 : dump de la base (locale)";
         echo -n "$MSG"
         ($dst_path_to_mysqldump --opt -R --no-data $sql_options -u $src_dbuser $src_dbname && $dst_path_to_mysqldump --opt -R $sql_options $sql_ignores -u $src_dbuser $src_dbname) \
             >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
@@ -86,15 +101,21 @@ else
 fi
 
 # remplacement des URL et chemins (même sérialisés)
-MSG="2/5 : remplacement des URL et chemins (meme serialises)";
-echo -n "$MSG"
-$dst_path_to_php $dst_path_to_resilient_replace -i "$src_root_url_escaped" "$dst_root_url" $sqlfile
-$dst_path_to_php $dst_path_to_resilient_replace -i "$src_root_fs_escaped" "$dst_root_fs" $sqlfile
-let COL=70-${#MSG}
-printf "%${COL}s\n" "OK"
+MSG="2/6 : remplacement de ${#replace_src[@]} URL et chemins";
+liste=$(echo "${!replace_src[@]}" | sed 's/ /\n/g' | sort -n)
+for k in $liste
+do
+    replace_src_current_value=${replace_src[$k]}
+    replace_dst_current_value=${replace_dst[$k]}
+    replace_src_escaped=`echo "${replace_src_current_value}" | sed 's/\//\\\\\//g'`
+    echo -ne "$MSG                               `expr 1 + $k` : ${replace_src_current_value} => ${replace_dst_current_value}\033[0K\r"
+    $dst_path_to_php $dst_path_to_resilient_replace -i "$replace_src_escaped" "$replace_dst_current_value" $sqlfile
+done
+echo -ne "$MSG                              OK\033[0K\r"
+echo
 
 # adaptation spécifiques
-MSG="3/5 : adaptations avant import (fichiers hook/before/*.sh)";
+MSG="3/6 : adaptations avant import (fichiers hook/before/*.sh)";
 # applique les fichiers dans hook
 echo -n "$MSG"
 
@@ -116,7 +137,7 @@ else
 fi
 
 # importe la BD modifiee
-MSG="4/5 : import de la base de donnees"
+MSG="4/6 : import de la base de donnees"
 echo -n "$MSG"
 cat $sqlfile | \
     $dst_path_to_mysql -u $dst_dbuser $dst_dbname --show-warnings > $logfile && \
@@ -124,7 +145,7 @@ cat $sqlfile | \
     let COL=70-${#MSG} && \
     printf "%${COL}s\n" "OK"
 
-MSG="5/5 : adaptations apres import (fichiers hook/after/*.sh)";
+MSG="5/6 : adaptations apres import (fichiers hook/after/*.sh)";
 # applique les fichiers dans hook
 echo -n "$MSG"
 # teste s'il y a des fichiers .sh
@@ -143,5 +164,20 @@ else
     let COL=70-${#MSG}
     printf "%${COL}s\n" ".."
 fi
+
+MSG="6/6 : synchronisation de ${#sync_src[@]} dossiers";
+let COL=70-${#MSG}
+liste=$(echo "${!sync_src[@]}" | sed 's/ /\n/g' | sort -n)
+for k in $liste
+do
+    sync_src_current_value=${sync_src[$k]}
+    sync_dst_current_value=${sync_dst[$k]}
+    sync_src_escaped=`echo "${sync_src_current_value}" | sed 's/\//\\\\\//g'`
+    echo -ne "$MSG                                  `expr 1 + $k` : ${sync_src_current_value} => ${sync_dst_current_value}\033[0K\r"
+    $dst_path_to_rsync $RSYNC_OPTIONS $src_unixuser@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile
+done
+echo -ne "$MSG                                 OK\033[0K\r"
+echo
+echo
 
 # vim: filetype=sh

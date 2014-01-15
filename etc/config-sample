@@ -1,38 +1,50 @@
-src_type="remote_base" # ou récupérer les données : local_file|local_base|remote_file|remote_base
-# si local_file ou remote_file, il faut le chemin vers le fichier
-src_file="/path/to/dump.sql.7z"
-# si src_type=*_base : compression à la volée, si src_type=*_file, prise en charge des fichiers compressés
-compress=1
+# Chercher-remplacer : URL locales et distantes 
+replace_src[0]="http://www.site.com"
+replace_dst[0]="http://local.site.com"
 
-# connexion en ssh (au serveur source)
-src_server="www.site.com"
-src_unixuser="username"
+# Chercher-remplacer : chemins locaux et distants 
+replace_src[1]="/remote/path/to/site.com/www"
+replace_dst[1]="/local/path/to/local.site.com"
 
-# source (= serveur distant par exemple)
-src_root_url="http://www.site.com"
-src_root_fs="/path/to/document/root"
+# Chercher-remplacer : hôtes locaux et distants 
+replace_src[2]="www.site.com"
+replace_dst[2]="local.site.com"
+
+# Synchronisation des fichiers : chemins locaux et distants
+# ATTENTION A BIEN METTRE LE "/" FINAL
+sync_src[0]="/remote/path/to/site.com/www/media"
+sync_dst[0]="/local/path/to/local.site.com/media"
+
+# Connexion en ssh (au serveur source)
+src_server="nsXXXX.ovh.net"
+src_unixuser="root"
+
+# Source (= serveur distant)
 src_hostname="localhost"
 src_dbname="dbname"
-src_dbuser="dbuser"
-sql_options="--skip-lock-tables --default-character-set=utf8"
+src_dbuser="root"
+
+# Destination (= serveur local)
+dst_dbname="local_dbname"
+dst_dbuser="user"
+
+# Options de synchronisation
+src_type="remote_file"                  # ou récupérer les données : local_file|local_base|remote_file|remote_base
+compress=1                              # si src_type=local_base|remote_base : compression à la volée
+                                        # si src_type=local_file|remote_file, prise en charge des fichiers compressés
+src_file="/path/to/dbname.sql.7z"       # si local_file ou remote_file, il faut le chemin vers le fichier
+sql_options="--default-character-set=utf8"
 # pour accélérer le processus, on peut ignorer le contenu de certaines tables
 sql_ignores=""
 
-# local (= destination)
-dst_root_url="http://localhost/upnbiz_gfi"
-dst_root_fs="/path/to/local/document/root"
-dst_hostname=`echo "$dst_root_url" | sed 's/\/.*//g'`
-dst_dbname="dbname"
-dst_dbuser="dbuser"
-
-# chemins
+# Chemins vers les outils
 src_path_to_mysqldump=/usr/bin/mysqldump
 dst_path_to_mysqldump=/usr/bin/mysqldump
 dst_path_to_mysql=/usr/bin/mysql
 dst_path_to_rsync=/usr/bin/rsync
 dst_path_to_php="/usr/bin/php" 
 dst_path_to_resilient_replace="$(dirname $0)/bin/resilient_replace"
-logfile="$(dirname $0)/log/majbdlocale.log"
+logfile="$(dirname $0)/log/sitesync.log"
 
 # scripts personnalises a appliquer avant et apres import de la BD :
 # mettez ce que vous voulez dans ./hook/before/*.sh et ./hook/after/*.sh
