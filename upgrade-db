@@ -1,0 +1,60 @@
+#/bin/bash
+
+echo "work in progress"
+exit
+
+source $(dirname $0)/etc/config
+
+# crée la table de suivi des mises à jour si nécessaire
+table_de_suivi_existe=$(echo "SHOW TABLES LIKE 'sitesync_upgrades';" | $dst_path_to_mysql -u $dst_dbuser $dst_dbname | grep '^sitesync_upgrades' | wc -l)
+if [ "$table_de_suivi_existe" == "0" ];
+then
+    echo "CREATE TABLE `sitesync_upgrades` (`version` INT UNSIGNED NOT NULL DEFAULT '0', UNIQUE (`version`)) ENGINE = MYISAM; " | $dst_path_to_mysql -u $dst_dbuser $dst_dbname
+fi
+
+# récupère la version de la base de données, enregistree dans la table de suivi des mises à jour
+current_version=$(echo "SELECT MAX(version) AS current_version FROM sitesync_upgrades" | $dst_path_to_mysql -u $dst_dbuser $dst_dbname --show-warnings | grep -v "^current_version")
+
+# on remet à 0 si NULL
+if [ "$current_version" == "NULL" ];
+then
+    echo "TRUNCATE sitesync_upgrades; INSERT INTO sitesync_upgrades (version) VALUES (0); " | $dst_path_to_mysql -u $dst_dbuser $dst_dbname --show-warnings
+    current_version=$(echo "SELECT MAX(version) AS current_version FROM sitesync_upgrades" | $dst_path_to_mysql -u $dst_dbuser $dst_dbname --show-warnings | grep -v "^current_version")
+fi
+
+echo "Version avant mise à jour : $current_version"
+
+# teste s'il y a des fichiers .sh
+shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
+files=(upgrades/*.sh); 
+[ "$resetnullglob" ] && shopt -u nullglob
+# s'il y a des fichiers .sh
+if [ ${#files[@]} -gt 0 ];
+then
+    for fich in $(ls upgrades/*.sh | sort --version-sort); 
+    do
+        basefich=$(basename $fich)
+        version="${basefich%.*}"
+        if [ "$version" -gt "$current_version" ];
+        then
+            APPLY_KO=1
+            echo "    - applique le script : $fich"
+            source $fich;
+            APPLY_KO=$?
+            if [ "$APPLY_KO" == "0" ];
+            then
+                echo "TRUNCATE sitesync_upgrades; INSERT INTO sitesync_upgrades (version) VALUES ('$version'); " | $dst_path_to_mysql -u $dst_dbuser $dst_dbname --show-warnings
+            else
+                echo "    - erreur en appliquant le script: $fich"
+                exit
+            fi
+        fi
+    done
+fi
+
+
+final_version=$(echo "SELECT MAX(version) AS current_version FROM sitesync_upgrades" | $dst_path_to_mysql -u $dst_dbuser $dst_dbname --show-warnings | grep -v "^current_version")
+
+echo "Version après mise à jour : $final_version"
+
+# vim: filetype=sh
