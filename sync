@@ -9,17 +9,8 @@ declare -A sync_dst
 
 source $(dirname $0)/etc/config
 
-if [ "${#replace_src[@]}" != "${#replace_dst[@]}" ];
-then
-    echo "Incohérence dans les remplacements demandés, vérifiez les tableaux 'replace_src' et 'replace_dst' dans le fichier $(dirname $0)/etc/config"
-fi
-
-if [ "${#sync_src[@]}" != "${#sync_dst[@]}" ];
-then
-    echo "Incohérence dans les synchronisations demandées, vérifiez les tableaux 'sync_src' et 'sync_dst' dans le fichier $(dirname $0)/etc/config"
-fi
-
 # activation compression, selon le type de source (gzip supporté globalement, 7z uniquement en remote_file ou local_file) a cause des ses limitations
+src_file_extension=""
 if [ $compress -gt 0 ];
 then
     case "$src_type" in 
@@ -56,35 +47,68 @@ sqlfile="$(dirname $0)/tmp/$src_dbname$curdate.sql"
 sqlfile_tmp="$(dirname $0)/tmp/$src_dbname.sql-tmp.$src_file_extension"
 sqlfile_backup="$(dirname $0)/tmp/$src_dbname.sql"
 
+# contrôles d'erreurs
+if [ "$src_file_extension" == "gz" ];
+then
+    if [[ ! -x $(which gzip) || ! -x $(which gunzip)  ]];
+    then
+        echo "Vous avez besoin de gzip et gunzip en local (c'est standard normalement) : # apt-get install gzip"
+        exit
+    fi
+elif [ "$src_file_extension" == "7z" ]
+then
+    if [[ ! -x $(which 7zr) ]];
+    then
+        echo "Vous avez besoin de 7zr en local : # apt-get install p7zip"
+        exit
+    fi
+fi
+
+if [ "${#replace_src[@]}" != "${#replace_dst[@]}" ];
+then
+    echo "Incohérence dans les remplacements demandés, vérifiez les tableaux 'replace_src' et 'replace_dst' dans le fichier $(dirname $0)/etc/config"
+    exit
+fi
+
+if [ "${#sync_src[@]}" != "${#sync_dst[@]}" ];
+then
+    echo "Incohérence dans les synchronisations demandées, vérifiez les tableaux 'sync_src' et 'sync_dst' dans le fichier $(dirname $0)/etc/config"
+    exit
+fi
+
 # backup distant ou local
-echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile_tmp
 RECUP_KO=1
 case "$src_type" in 
     "remote_file")
         MSG="1/6 : récupération du fichier dump (distant)";
         printf "\r`tput el`%s" "$MSG"
-        ssh $src_unixuser@$src_server "$DO_GZIP $src_file" >> $sqlfile_tmp && $DO_GUNZIP $sqlfile_tmp 2>/dev/null \
+        ssh $src_unixuser@$src_server "$DO_GZIP $src_file" > $sqlfile_tmp && \
+            echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile && \
+            $DO_GUNZIP $sqlfile_tmp 2>/dev/null \
             >> $sqlfile && rm -f $sqlfile_tmp
         RECUP_KO=$?
         ;;
     "local_file")
         MSG="1/6 : récupération du fichier dump (local : $src_file)";
         printf "\r`tput el`%s" "$MSG"
-        $DO_GUNZIP $src_file 2>/dev/null \
+        echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile_tmp && \
+            $DO_GUNZIP $src_file 2>/dev/null \
             >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
         RECUP_KO=$?
         ;;
     "remote_base")
         MSG="1/6 : dump de la base (distante)";
         printf "\r`tput el`%s" "$MSG"
-        ssh $src_unixuser@$src_server "($src_path_to_mysqldump --opt -R --no-data $sql_options -u $src_dbuser $src_dbname && $src_path_to_mysqldump --opt -R $sql_options $sql_ignores -u $src_dbuser $src_dbname) | $DO_GZIP" | $DO_GUNZIP \
+        echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile_tmp && \
+            ssh $src_unixuser@$src_server "($src_path_to_mysqldump --opt -R --no-data $sql_options -u $src_dbuser $src_dbname && $src_path_to_mysqldump --opt -R $sql_options $sql_ignores -u $src_dbuser $src_dbname) | $DO_GZIP" | $DO_GUNZIP \
             >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
         RECUP_KO=$?
         ;;
     "local_base")
         MSG="1/6 : dump de la base (locale)";
         printf "\r`tput el`%s" "$MSG"
-        ($dst_path_to_mysqldump --opt -R --no-data $sql_options -u $src_dbuser $src_dbname && $dst_path_to_mysqldump --opt -R $sql_options $sql_ignores -u $src_dbuser $src_dbname) \
+        echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile_tmp && \
+            ($dst_path_to_mysqldump --opt -R --no-data $sql_options -u $src_dbuser $src_dbname && $dst_path_to_mysqldump --opt -R $sql_options $sql_ignores -u $src_dbuser $src_dbname) \
             >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
         RECUP_KO=$?
         ;;
