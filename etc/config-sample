@@ -21,8 +21,10 @@ src_unixuser="root"
 
 # Source (= serveur distant)
 src_hostname="localhost"
+src_port=""
 src_dbname="dbname"
 src_dbuser="root"
+src_dbpass=""
 
 # Destination (= serveur local)
 dst_dbname="local_dbname"
