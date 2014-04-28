@@ -27,8 +27,11 @@ src_dbuser="root"
 src_dbpass=""
 
 # Destination (= serveur local)
+dst_hostname="localhost"
+dst_port=""
 dst_dbname="local_dbname"
 dst_dbuser="user"
+dst_dbpass=""
 
 # Options de synchronisation
 src_type="remote_file"                  # ou récupérer les données : local_file|local_base|remote_file|remote_base
