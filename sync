@@ -210,7 +210,7 @@ fi
 MSG="4/6 : import de la base de donnees"
 echo -n "$MSG"
 cat $sqlfile | \
-    $dst_path_to_mysql -u $dst_dbuser $dst_dbname --show-warnings > $logfile && \
+    $dst_path_to_mysql $arg_connexion_src $dst_dbname --show-warnings > $logfile && \
     mv -f $sqlfile $sqlfile_backup && \
     let COL=70-${#MSG} && \
     printf "%${COL}s\n" "OK"
