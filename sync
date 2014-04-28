@@ -41,7 +41,7 @@ else
     RSYNC_OPTIONS="-vrp"
 fi
 
-# gestion des infos de connexion à la base
+# gestion des infos de connexion à la base source
 arg_src_hostname=""
 arg_src_port=""
 arg_src_dbuser=""
@@ -62,7 +62,26 @@ case "$src_type" in
         fi
         ;;
 esac
-arg_connexion="$arg_src_hostname$arg_src_port$arg_src_dbuser$arg_src_dbpass"
+arg_connexion_src="$arg_src_hostname$arg_src_port$arg_src_dbuser$arg_src_dbpass"
+
+# gestion des infos de connexion à la base destination
+arg_dst_hostname=""
+arg_dst_port=""
+arg_dst_dbuser=""
+arg_dst_dbpass=""
+if [ -n "$dst_hostname" ]; then
+    arg_dst_hostname=" -h $dst_hostname "
+fi
+if [ -n "$dst_port" ]; then
+    arg_dst_port=" -P $dst_port "
+fi
+if [ -n "$dst_dbuser" ]; then
+    arg_dst_dbuser=" -u $dst_dbuser "
+fi
+if [ -n "$dst_dbpass" ]; then
+    arg_dst_dbpass=" -p$dst_dbpass "
+fi
+arg_connexion_dst="$arg_dst_hostname$arg_dst_port$arg_dst_dbuser$arg_dst_dbpass"
 
 # echappement des variables : caracteres '.' et '/'
 curdate=`date +%Y%m%d%H%M%S`
@@ -123,7 +142,7 @@ case "$src_type" in
         MSG="1/6 : dump de la base (distante)";
         printf "\r`tput el`%s" "$MSG"
         echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile_tmp && \
-            ssh $src_unixuser@$src_server "($src_path_to_mysqldump --opt -R --no-data $sql_options $arg_connexion $src_dbname && $src_path_to_mysqldump --opt -R $sql_options $sql_ignores $arg_connexion $src_dbname) | $DO_GZIP" | $DO_GUNZIP \
+            ssh $src_unixuser@$src_server "($src_path_to_mysqldump --opt -R --no-data $sql_options $arg_connexion_src $src_dbname && $src_path_to_mysqldump --opt -R $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $DO_GZIP" | $DO_GUNZIP \
             >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
         RECUP_KO=$?
         ;;
@@ -131,7 +150,7 @@ case "$src_type" in
         MSG="1/6 : dump de la base (locale)";
         printf "\r`tput el`%s" "$MSG"
         echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile_tmp && \
-            ($dst_path_to_mysqldump --opt -R --no-data $sql_options $arg_connexion $src_dbname && $dst_path_to_mysqldump --opt -R $sql_options $sql_ignores $arg_connexion $src_dbname) \
+            ($dst_path_to_mysqldump --opt -R --no-data $sql_options $arg_connexion_src $src_dbname && $dst_path_to_mysqldump --opt -R $sql_options $sql_ignores $arg_connexion_src $src_dbname) \
             >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
         RECUP_KO=$?
         ;;
