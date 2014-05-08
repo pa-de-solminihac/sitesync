@@ -28,13 +28,13 @@ dst_dbuser=""
 dst_dbpass=""
 
 # Options de synchronisation
-src_type="remote_file"                  # ou récupérer les données : local_file|local_base|remote_file|remote_base
+src_type="remote_file"                  # ou faut il récupérer les données : local_file|local_base|remote_file|remote_base
+src_file="/path/to/dbname.sql.7z"       # si local_file ou remote_file, il faut le chemin vers le fichier
 compress=1                              # si src_type=local_base|remote_base : compression à la volée
                                         # si src_type=local_file|remote_file, prise en charge des fichiers compressés
-src_file="/path/to/dbname.sql.7z"       # si local_file ou remote_file, il faut le chemin vers le fichier
 sql_options="--default-character-set=utf8"
-# pour accélérer le processus, on peut ignorer le contenu de certaines tables
-sql_ignores=""
+sql_ignores=""                          # pour accélérer le processus, on peut ignorer le contenu de certaines tables
+rsync_options="-vrpuz"
 
 # Chemins vers les outils
 src_path_to_mysqldump=/usr/bin/mysqldump
