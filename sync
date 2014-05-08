@@ -88,7 +88,8 @@ sqlfile="$(dirname $0)/tmp/$src_dbname$curdate.sql"
 sqlfile_tmp="$(dirname $0)/tmp/$src_dbname.sql-tmp.$src_file_extension"
 sqlfile_backup="$(dirname $0)/tmp/$src_dbname.sql"
 
-echo | tee $logfile
+echo "Lancement de la synchro" > $logfile # RAZ du fichier log
+echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 
 # contrôles d'erreurs
 if [ "$src_file_extension" == "gz" ];
@@ -179,8 +180,9 @@ do
     replace_src_escaped=`echo "${replace_src_current_value}" | sed 's/\//\\\\\//g'`
     MSG4="`expr 1 + $k`"
     MSG5=": ${replace_src_current_value} => ${replace_dst_current_value}"
-    printf "\r`tput el`" # affichage uniquement
-    echo >> $logfile     # log uniquement
+    printf "\r`tput el`"                            # affichage uniquement
+    echo >> $logfile                                # log uniquement
+    echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement
     printf "$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4" | tee -a $logfile
     $dst_path_to_php $dst_path_to_resilient_replace -i "$replace_src_escaped" "$replace_dst_current_value" $sqlfile
 done
@@ -188,6 +190,7 @@ printf "\r`tput el`" # affichage uniquement
 echo >> $logfile     # log uniquement
 printf "$MSG1 %3d $MSG3  OK" "$MSG2" | tee -a $logfile
 echo | tee -a $logfile
+echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 
 # adaptation spécifiques
 MSG="3/6 : adaptations avant import (fichiers hook/before/*.sh)";
@@ -204,12 +207,14 @@ then
     echo | tee -a $logfile
     for fich in hook/before/*.sh;
     do
+        echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
         source $fich;
     done
 else
     let COL=70-${#MSG}
     printf "%${COL}s\n" ".." | tee -a $logfile
 fi
+echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 
 # importe la BD modifiee
 MSG="4/6 : import de la base de donnees"
@@ -233,12 +238,14 @@ then
     echo | tee -a $logfile
     for fich in hook/after/*.sh;
     do
+        echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
         source $fich;
     done
 else
     let COL=70-${#MSG}
     printf "%${COL}s\n" ".." | tee -a $logfile
 fi
+echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 
 MSG1="6/6 : synchronisation de";
 MSG2="${#sync_src[@]}";
@@ -251,13 +258,14 @@ do
     sync_src_escaped=`echo "${sync_src_current_value}" | sed 's/\//\\\\\//g'`
     MSG4="`expr 1 + $k`"
     MSG5=": ${sync_src_current_value} => ${sync_dst_current_value}"
-    printf "\r`tput el`" # affichage uniquement
-    echo >> $logfile     # log uniquement
+    printf "\r`tput el`"                            # affichage uniquement
+    echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement
     printf "$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4" | tee -a $logfile
-    $dst_path_to_rsync $rsync_options $src_unixuser@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile
+    $dst_path_to_rsync $rsync_options $src_unixuser@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile 2>&1
 done
 printf "\r`tput el`$MSG1 %3d $MSG3  OK" "$MSG2" | tee -a $logfile
 echo | tee -a $logfile
-echo | tee -a $logfile
+echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
+echo "Fin de la synchro" >> $logfile
 
 # vim: filetype=sh
