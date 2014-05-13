@@ -7,13 +7,14 @@ declare -A replace_dst
 declare -A sync_src
 declare -A sync_dst
 
+source $(dirname $0)/inc/config-base
 source $(dirname $0)/etc/config
 
 # activation compression, selon le type de source (gzip supporté globalement, 7z uniquement en remote_file ou local_file) a cause des ses limitations
 src_file_extension=""
 if [ $compress -gt 0 ];
 then
-    case "$src_type" in 
+    case "$src_type" in
         "remote_file" | "local_file")
             src_file_extension=$(echo "${src_file##*.}" | tr '[:upper:]' '[:lower:]');
             if [ "$src_file_extension" == "gz" ];
@@ -34,12 +35,52 @@ then
             DO_GUNZIP="gunzip"
             ;;
     esac
-    RSYNC_OPTIONS="-vrpz"
 else
     DO_GZIP="cat"
     DO_GUNZIP="cat"
-    RSYNC_OPTIONS="-vrp"
 fi
+
+# gestion des infos de connexion à la base source
+arg_src_hostname=""
+arg_src_port=""
+arg_src_dbuser=""
+arg_src_dbpass=""
+case "$src_type" in
+    "remote_base" | "local_base")
+        if [ -n "$src_hostname" ]; then
+            arg_src_hostname=" -h $src_hostname "
+        fi
+        if [ -n "$src_port" ]; then
+            arg_src_port=" -P $src_port "
+        fi
+        if [ -n "$src_dbuser" ]; then
+            arg_src_dbuser=" -u $src_dbuser "
+        fi
+        if [ -n "$src_dbpass" ]; then
+            arg_src_dbpass=" -p$src_dbpass "
+        fi
+        ;;
+esac
+arg_connexion_src="$arg_src_hostname$arg_src_port$arg_src_dbuser$arg_src_dbpass"
+
+# gestion des infos de connexion à la base destination
+arg_dst_hostname=""
+arg_dst_port=""
+arg_dst_dbuser=""
+arg_dst_dbpass=""
+if [ -n "$dst_hostname" ]; then
+    arg_dst_hostname=" -h $dst_hostname "
+fi
+if [ -n "$dst_port" ]; then
+    arg_dst_port=" -P $dst_port "
+fi
+if [ -n "$dst_dbuser" ]; then
+    arg_dst_dbuser=" -u $dst_dbuser "
+fi
+if [ -n "$dst_dbpass" ]; then
+    arg_dst_dbpass=" -p$dst_dbpass "
+fi
+arg_connexion_dst="$arg_dst_hostname$arg_dst_port$arg_dst_dbuser$arg_dst_dbpass"
 
 # echappement des variables : caracteres '.' et '/'
 curdate=`date +%Y%m%d%H%M%S`
@@ -47,41 +88,44 @@ sqlfile="$(dirname $0)/tmp/$src_dbname$curdate.sql"
 sqlfile_tmp="$(dirname $0)/tmp/$src_dbname.sql-tmp.$src_file_extension"
 sqlfile_backup="$(dirname $0)/tmp/$src_dbname.sql"
 
+echo "Lancement de la synchro" > $logfile # RAZ du fichier log
+echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
+
 # contrôles d'erreurs
 if [ "$src_file_extension" == "gz" ];
 then
     if [[ ! -x $(which gzip) || ! -x $(which gunzip)  ]];
     then
-        echo "Vous avez besoin de gzip et gunzip en local (c'est standard normalement) : # apt-get install gzip"
+        echo "Vous avez besoin de gzip et gunzip en local (c'est standard normalement) : # apt-get install gzip" | tee -a $logfile
         exit
     fi
 elif [ "$src_file_extension" == "7z" ]
 then
     if [[ ! -x $(which 7zr) ]];
     then
-        echo "Vous avez besoin de 7zr en local : # apt-get install p7zip"
+        echo "Vous avez besoin de 7zr en local : # apt-get install p7zip" | tee -a $logfile
         exit
     fi
 fi
 
 if [ "${#replace_src[@]}" != "${#replace_dst[@]}" ];
 then
-    echo "Incohérence dans les remplacements demandés, vérifiez les tableaux 'replace_src' et 'replace_dst' dans le fichier $(dirname $0)/etc/config"
+    echo "Incohérence dans les remplacements demandés, vérifiez les tableaux 'replace_src' et 'replace_dst' dans le fichier $(dirname $0)/etc/config" | tee -a $logfile
     exit
 fi
 
 if [ "${#sync_src[@]}" != "${#sync_dst[@]}" ];
 then
-    echo "Incohérence dans les synchronisations demandées, vérifiez les tableaux 'sync_src' et 'sync_dst' dans le fichier $(dirname $0)/etc/config"
+    echo "Incohérence dans les synchronisations demandées, vérifiez les tableaux 'sync_src' et 'sync_dst' dans le fichier $(dirname $0)/etc/config" | tee -a $logfile
     exit
 fi
 
 # backup distant ou local
 RECUP_KO=1
-case "$src_type" in 
+case "$src_type" in
     "remote_file")
         MSG="1/6 : récupération du fichier dump (distant)";
-        printf "\r`tput el`%s" "$MSG"
+        printf "\r`tput el`%s" "$MSG" | tee -a $logfile
         ssh $src_unixuser@$src_server "$DO_GZIP $src_file" > $sqlfile_tmp && \
             echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile && \
             $DO_GUNZIP $sqlfile_tmp 2>/dev/null \
@@ -90,7 +134,7 @@ case "$src_type" in
         ;;
     "local_file")
         MSG="1/6 : récupération du fichier dump (local : $src_file)";
-        printf "\r`tput el`%s" "$MSG"
+        printf "\r`tput el`%s" "$MSG" | tee -a $logfile
         echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile_tmp && \
             $DO_GUNZIP $src_file 2>/dev/null \
             >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
@@ -98,17 +142,17 @@ case "$src_type" in
         ;;
     "remote_base")
         MSG="1/6 : dump de la base (distante)";
-        printf "\r`tput el`%s" "$MSG"
+        printf "\r`tput el`%s" "$MSG" | tee -a $logfile
         echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile_tmp && \
-            ssh $src_unixuser@$src_server "($src_path_to_mysqldump --opt -R --no-data $sql_options -u $src_dbuser $src_dbname && $src_path_to_mysqldump --opt -R $sql_options $sql_ignores -u $src_dbuser $src_dbname) | $DO_GZIP" | $DO_GUNZIP \
+            ssh $src_unixuser@$src_server "($src_path_to_mysqldump --opt -R --no-data $sql_options $arg_connexion_src $src_dbname && $src_path_to_mysqldump --opt -R $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $DO_GZIP" | $DO_GUNZIP \
             >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
         RECUP_KO=$?
         ;;
     "local_base")
         MSG="1/6 : dump de la base (locale)";
-        printf "\r`tput el`%s" "$MSG"
+        printf "\r`tput el`%s" "$MSG" | tee -a $logfile
         echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile_tmp && \
-            ($dst_path_to_mysqldump --opt -R --no-data $sql_options -u $src_dbuser $src_dbname && $dst_path_to_mysqldump --opt -R $sql_options $sql_ignores -u $src_dbuser $src_dbname) \
+            ($dst_path_to_mysqldump --opt -R --no-data $sql_options $arg_connexion_src $src_dbname && $dst_path_to_mysqldump --opt -R $sql_options $sql_ignores $arg_connexion_src $src_dbname) \
             >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
         RECUP_KO=$?
         ;;
@@ -117,11 +161,11 @@ esac
 if [ $RECUP_KO -gt 0 ];
 then
     let COL=70-${#MSG}
-    printf "%${COL}s\n" "KO"
+    printf "%${COL}s\n" "KO" | tee -a $logfile
     exit
 else
     let COL=70-${#MSG}
-    printf "%${COL}s\n" "OK"
+    printf "%${COL}s\n" "OK" | tee -a $logfile
 fi
 
 # remplacement des URL et chemins (même sérialisés)
@@ -136,62 +180,72 @@ do
     replace_src_escaped=`echo "${replace_src_current_value}" | sed 's/\//\\\\\//g'`
     MSG4="`expr 1 + $k`"
     MSG5=": ${replace_src_current_value} => ${replace_dst_current_value}"
-    printf "\r`tput el`$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4"
+    printf "\r`tput el`"                            # affichage uniquement
+    echo >> $logfile                                # log uniquement
+    echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement
+    printf "$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4" | tee -a $logfile
     $dst_path_to_php $dst_path_to_resilient_replace -i "$replace_src_escaped" "$replace_dst_current_value" $sqlfile
 done
-printf "\r`tput el`$MSG1 %3d $MSG3  OK" "$MSG2"
-echo
+printf "\r`tput el`" # affichage uniquement
+echo >> $logfile     # log uniquement
+printf "$MSG1 %3d $MSG3  OK" "$MSG2" | tee -a $logfile
+echo | tee -a $logfile
+echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 
 # adaptation spécifiques
 MSG="3/6 : adaptations avant import (fichiers hook/before/*.sh)";
 # applique les fichiers dans hook
-echo -n "$MSG"
+echo -n "$MSG" | tee -a $logfile
 
 # teste s'il y a des fichiers .sh
 shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
-files=(hook/before/*.sh); 
+files=(hook/before/*.sh);
 [ "$resetnullglob" ] && shopt -u nullglob
 # s'il y a des fichiers .sh
 if [ ${#files[@]} -gt 0 ];
 then
-    echo
-    for fich in hook/before/*.sh; 
+    echo | tee -a $logfile
+    for fich in hook/before/*.sh;
     do
+        echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
         source $fich;
     done
 else
     let COL=70-${#MSG}
-    printf "%${COL}s\n" ".."
+    printf "%${COL}s\n" ".." | tee -a $logfile
 fi
+echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 
 # importe la BD modifiee
 MSG="4/6 : import de la base de donnees"
-echo -n "$MSG"
+echo -n "$MSG" | tee -a $logfile
 cat $sqlfile | \
-    $dst_path_to_mysql -u $dst_dbuser $dst_dbname --show-warnings > $logfile && \
+    $dst_path_to_mysql $arg_connexion_dst $dst_dbname --show-warnings >> $logfile && \
     mv -f $sqlfile $sqlfile_backup && \
     let COL=70-${#MSG} && \
-    printf "%${COL}s\n" "OK"
+    printf "%${COL}s\n" "OK" | tee -a $logfile
 
 MSG="5/6 : adaptations apres import (fichiers hook/after/*.sh)";
 # applique les fichiers dans hook
-echo -n "$MSG"
+echo -n "$MSG" | tee -a $logfile
 # teste s'il y a des fichiers .sh
 shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
-files=(hook/after/*.sh); 
+files=(hook/after/*.sh);
 [ "$resetnullglob" ] && shopt -u nullglob
 # s'il y a des fichiers .sh
 if [ ${#files[@]} -gt 0 ];
 then
-    echo
-    for fich in hook/after/*.sh; 
+    echo | tee -a $logfile
+    for fich in hook/after/*.sh;
     do
+        echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
         source $fich;
     done
 else
     let COL=70-${#MSG}
-    printf "%${COL}s\n" ".."
+    printf "%${COL}s\n" ".." | tee -a $logfile
 fi
+echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 
 MSG1="6/6 : synchronisation de";
 MSG2="${#sync_src[@]}";
@@ -204,11 +258,14 @@ do
     sync_src_escaped=`echo "${sync_src_current_value}" | sed 's/\//\\\\\//g'`
     MSG4="`expr 1 + $k`"
     MSG5=": ${sync_src_current_value} => ${sync_dst_current_value}"
-    printf "\r`tput el`$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4"
-    $dst_path_to_rsync $RSYNC_OPTIONS $src_unixuser@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile
+    printf "\r`tput el`"                            # affichage uniquement
+    echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement
+    printf "$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4" | tee -a $logfile
+    $dst_path_to_rsync $rsync_options $src_unixuser@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile 2>&1
 done
-printf "\r`tput el`$MSG1 %3d $MSG3  OK" "$MSG2"
-echo
-echo
+printf "\r`tput el`$MSG1 %3d $MSG3  OK" "$MSG2" | tee -a $logfile
+echo | tee -a $logfile
+echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
+echo "Fin de la synchro" >> $logfile
 
 # vim: filetype=sh

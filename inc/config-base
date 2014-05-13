@@ -1,36 +1,30 @@
 # Chercher-remplacer : URL locales et distantes 
-replace_src[0]="http://www.site.com"
-replace_dst[0]="http://local.site.com"
-
 # Chercher-remplacer : chemins locaux et distants 
-replace_src[1]="/remote/path/to/site.com/www"
-replace_dst[1]="/local/path/to/local.site.com"
-
 # Chercher-remplacer : hôtes locaux et distants 
-replace_src[2]="www.site.com"
-replace_dst[2]="local.site.com"
+declare -A replace_src
+declare -A replace_dst
 
 # Synchronisation des fichiers : chemins locaux et distants
 # ATTENTION A BIEN METTRE LE "/" FINAL
-sync_src[0]="/remote/path/to/site.com/www/media"
-sync_dst[0]="/local/path/to/local.site.com/media"
+declare -A sync_src
+declare -A sync_dst
 
 # Connexion en ssh (au serveur source)
 src_server="nsXXXX.ovh.net"
-src_unixuser="root"
+src_unixuser=""
 
 # Source (= serveur distant, vu depuis le serveur src_server)
 src_hostname="localhost"
 src_port=""
-src_dbname="dbname"
-src_dbuser="root"
+src_dbname=""
+src_dbuser=""
 src_dbpass=""
 
 # Destination (= serveur local)
 dst_hostname="localhost"
 dst_port=""
-dst_dbname="local_dbname"
-dst_dbuser="user"
+dst_dbname=""
+dst_dbuser=""
 dst_dbpass=""
 
 # Options de synchronisation
