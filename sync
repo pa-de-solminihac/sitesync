@@ -224,8 +224,28 @@ cat $sqlfile | \
     mv -f $sqlfile $sqlfile_backup && \
     let COL=70-${#MSG} && \
     printf "%${COL}s\n" "OK" | tee -a $logfile
+echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 
-MSG="5/6 : adaptations apres import (fichiers hook/after/*.sh)";
+MSG1="5/6 : synchronisation de";
+MSG2="${#sync_src[@]}";
+MSG3="dossiers                             "
+liste=$(echo "${!sync_src[@]}" | sed 's/ /\n/g' | sort -n)
+for k in $liste
+do
+    sync_src_current_value=${sync_src[$k]}
+    sync_dst_current_value=${sync_dst[$k]}
+    MSG4="`expr 1 + $k`"
+    MSG5=": ${sync_src_current_value} => ${sync_dst_current_value}"
+    printf "\r`tput el`"                            # affichage uniquement
+    echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement
+    printf "$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4" | tee -a $logfile
+    $dst_path_to_rsync $rsync_options $src_unixuser@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile 2>&1
+done
+printf "\r`tput el`$MSG1 %3d $MSG3  OK" "$MSG2" | tee -a $logfile
+echo | tee -a $logfile
+echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
+
+MSG="6/6 : adaptations apres import (fichiers hook/after/*.sh)";
 # applique les fichiers dans hook
 echo -n "$MSG" | tee -a $logfile
 # teste s'il y a des fichiers .sh
@@ -245,27 +265,7 @@ else
     let COL=70-${#MSG}
     printf "%${COL}s\n" ".." | tee -a $logfile
 fi
-echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 
-MSG1="6/6 : synchronisation de";
-MSG2="${#sync_src[@]}";
-MSG3="dossiers                             "
-liste=$(echo "${!sync_src[@]}" | sed 's/ /\n/g' | sort -n)
-for k in $liste
-do
-    sync_src_current_value=${sync_src[$k]}
-    sync_dst_current_value=${sync_dst[$k]}
-    sync_src_escaped=`echo "${sync_src_current_value}" | sed 's/\//\\\\\//g'`
-    MSG4="`expr 1 + $k`"
-    MSG5=": ${sync_src_current_value} => ${sync_dst_current_value}"
-    printf "\r`tput el`"                            # affichage uniquement
-    echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement
-    printf "$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4" | tee -a $logfile
-    $dst_path_to_rsync $rsync_options $src_unixuser@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile 2>&1
-done
-printf "\r`tput el`$MSG1 %3d $MSG3  OK" "$MSG2" | tee -a $logfile
-echo | tee -a $logfile
-echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 echo "Fin de la synchro" >> $logfile
 
 # vim: filetype=sh
