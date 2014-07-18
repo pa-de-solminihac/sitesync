@@ -1,19 +1,19 @@
-# Chercher-remplacer : URL locales et distantes 
+# Chercher-remplacer : URL locales et distantes
 replace_src[0]="http://www.site.com"
 replace_dst[0]="http://local.site.com"
 
-# Chercher-remplacer : chemins locaux et distants 
+# Chercher-remplacer : chemins locaux et distants
 replace_src[1]="/remote/path/to/site.com/www"
 replace_dst[1]="/local/path/to/local.site.com"
 
-# Chercher-remplacer : hôtes locaux et distants 
+# Chercher-remplacer : hôtes locaux et distants
 replace_src[2]="www.site.com"
 replace_dst[2]="local.site.com"
 
 # Synchronisation des fichiers : chemins locaux et distants
 # ATTENTION A BIEN METTRE LE "/" FINAL
-sync_src[0]="/remote/path/to/site.com/www/media"
-sync_dst[0]="/local/path/to/local.site.com/media"
+sync_src[0]="/remote/path/to/site.com/www/media/"
+sync_dst[0]="/local/path/to/local.site.com/media/"
 
 # Connexion en ssh (au serveur source)
 src_server="nsXXXX.ovh.net"
@@ -48,7 +48,7 @@ src_path_to_mysqldump=/usr/bin/mysqldump
 dst_path_to_mysqldump=/usr/bin/mysqldump
 dst_path_to_mysql=/usr/bin/mysql
 dst_path_to_rsync=/usr/bin/rsync
-dst_path_to_php="/usr/bin/php" 
+dst_path_to_php="/usr/bin/php"
 dst_path_to_resilient_replace="$(dirname $0)/bin/resilient_replace"
 logfile="$(dirname $0)/log/sitesync.log"
 
