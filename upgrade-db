@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 echo "work in progress"
 exit

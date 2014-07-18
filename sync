@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 # TODO: chercher-remplacer basés sur des tableaux utilisables pour les URL, les chemins, les noms d'hôtes...
 # TODO: synchronisation de dossiers basée sur des tableaux
@@ -126,7 +126,7 @@ case "$src_type" in
     "remote_file")
         MSG="1/6 : récupération du fichier dump (distant)";
         printf "\r`tput el`%s" "$MSG" | tee -a $logfile
-        ssh $src_unixuser@$src_server "$DO_GZIP $src_file" > $sqlfile_tmp && \
+        ssh -p $src_ssh_port $src_unixuser@$src_server "$DO_GZIP $src_file" > $sqlfile_tmp && \
             echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile && \
             $DO_GUNZIP $sqlfile_tmp 2>/dev/null \
             >> $sqlfile && rm -f $sqlfile_tmp
@@ -144,7 +144,7 @@ case "$src_type" in
         MSG="1/6 : dump de la base (distante)";
         printf "\r`tput el`%s" "$MSG" | tee -a $logfile
         echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile_tmp && \
-            ssh $src_unixuser@$src_server "($src_path_to_mysqldump --opt -R --no-data $sql_options $arg_connexion_src $src_dbname && $src_path_to_mysqldump --opt -R $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $DO_GZIP" | $DO_GUNZIP \
+            ssh -p $src_ssh_port $src_unixuser@$src_server "($src_path_to_mysqldump --opt -R --no-data $sql_options $arg_connexion_src $src_dbname && $src_path_to_mysqldump --opt -R $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $DO_GZIP" | $DO_GUNZIP \
             >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
         RECUP_KO=$?
         ;;
@@ -172,13 +172,12 @@ fi
 MSG1="2/6 : remplacement de";
 MSG2="${#replace_src[@]}";
 MSG3="URL et chemins                          "
-liste=$(echo "${!replace_src[@]}" | sed 's/ /\n/g' | sort -n)
-for k in $liste
+for k in "${!replace_src[@]}"
 do
-    replace_src_current_value=${replace_src[$k]}
-    replace_dst_current_value=${replace_dst[$k]}
+    replace_src_current_value=${replace_src["$k"]}
+    replace_dst_current_value=${replace_dst["$k"]}
     replace_src_escaped=`echo "${replace_src_current_value}" | sed 's/\//\\\\\//g'`
-    MSG4="`expr 1 + $k`"
+    MSG4="`expr 1 + \"$k\"`"
     MSG5=": ${replace_src_current_value} => ${replace_dst_current_value}"
     printf "\r`tput el`"                            # affichage uniquement
     echo >> $logfile                                # log uniquement
@@ -229,8 +228,7 @@ echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 MSG1="5/6 : synchronisation de";
 MSG2="${#sync_src[@]}";
 MSG3="dossiers                             "
-liste=$(echo "${!sync_src[@]}" | sed 's/ /\n/g' | sort -n)
-for k in $liste
+for k in "${!sync_src[@]}"
 do
     sync_src_current_value=${sync_src[$k]}
     sync_dst_current_value=${sync_dst[$k]}
@@ -239,7 +237,7 @@ do
     printf "\r`tput el`"                            # affichage uniquement
     echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement
     printf "$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4" | tee -a $logfile
-    $dst_path_to_rsync $rsync_options $src_unixuser@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile 2>&1
+    $dst_path_to_rsync $rsync_options -e "ssh -p $src_ssh_port" $src_unixuser@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile 2>&1
 done
 printf "\r`tput el`$MSG1 %3d $MSG3  OK" "$MSG2" | tee -a $logfile
 echo | tee -a $logfile

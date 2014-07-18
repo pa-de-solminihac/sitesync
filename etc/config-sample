@@ -18,6 +18,7 @@ sync_dst[0]="/local/path/to/local.site.com/media"
 # Connexion en ssh (au serveur source)
 src_server="nsXXXX.ovh.net"
 src_unixuser="root"
+src_ssh_port="22"
 
 # Source (= serveur distant, vu depuis le serveur src_server)
 src_hostname="localhost"
