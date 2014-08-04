@@ -2,10 +2,10 @@
 
 # TODO: chercher-remplacer basés sur des tableaux utilisables pour les URL, les chemins, les noms d'hôtes...
 # TODO: synchronisation de dossiers basée sur des tableaux
-declare -A replace_src
-declare -A replace_dst
-declare -A sync_src
-declare -A sync_dst
+declare -a replace_src
+declare -a replace_dst
+declare -a sync_src
+declare -a sync_dst
 
 source $(dirname $0)/inc/config-base
 source $(dirname $0)/etc/config
@@ -144,7 +144,7 @@ case "$src_type" in
         MSG="1/6 : dump de la base (distante)";
         printf "\r`tput el`%s" "$MSG" | tee -a $logfile
         echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile_tmp && \
-            ssh -p $src_ssh_port $src_unixuser@$src_server "($src_path_to_mysqldump --opt -R --no-data $sql_options $arg_connexion_src $src_dbname && $src_path_to_mysqldump --opt -R $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $DO_GZIP" | $DO_GUNZIP \
+            ssh -p $src_ssh_port $src_unixuser@$src_server "($src_path_to_mysqldump --opt --routines --no-data --no-create-db $sql_options $arg_connexion_src $src_dbname && $src_path_to_mysqldump --opt --routines --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $DO_GZIP" | $DO_GUNZIP \
             >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
         RECUP_KO=$?
         ;;
@@ -152,7 +152,7 @@ case "$src_type" in
         MSG="1/6 : dump de la base (locale)";
         printf "\r`tput el`%s" "$MSG" | tee -a $logfile
         echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile_tmp && \
-            ($dst_path_to_mysqldump --opt -R --no-data $sql_options $arg_connexion_src $src_dbname && $dst_path_to_mysqldump --opt -R $sql_options $sql_ignores $arg_connexion_src $src_dbname) \
+            ($dst_path_to_mysqldump --opt --routines --no-data --no-create-db $sql_options $arg_connexion_src $src_dbname && $dst_path_to_mysqldump --opt --routines --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname) \
             >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
         RECUP_KO=$?
         ;;
@@ -178,7 +178,7 @@ do
     replace_dst_current_value=${replace_dst["$k"]}
     replace_src_escaped=`echo "${replace_src_current_value}" | sed 's/\//\\\\\//g'`
     MSG4="`expr 1 + \"$k\"`"
-    MSG5=": ${replace_src_current_value} => ${replace_dst_current_value}"
+    MSG5=": \"${replace_src_current_value}\" => \"${replace_dst_current_value}\""
     printf "\r`tput el`"                            # affichage uniquement
     echo >> $logfile                                # log uniquement
     echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement

@@ -1,13 +1,13 @@
 # Chercher-remplacer : URL locales et distantes
 # Chercher-remplacer : chemins locaux et distants
 # Chercher-remplacer : hôtes locaux et distants
-declare -A replace_src
-declare -A replace_dst
+declare -a replace_src
+declare -a replace_dst
 
 # Synchronisation des fichiers : chemins locaux et distants
 # ATTENTION A BIEN METTRE LE "/" FINAL
-declare -A sync_src
-declare -A sync_dst
+declare -a sync_src
+declare -a sync_dst
 
 # Connexion en ssh (au serveur source)
 src_server="nsXXXX.ovh.net"
