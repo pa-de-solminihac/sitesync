@@ -5,7 +5,6 @@ declare -a replace_src
 declare -a replace_dst
 
 # Synchronisation des fichiers : chemins locaux et distants
-# ATTENTION A BIEN METTRE LE "/" FINAL
 declare -a sync_src
 declare -a sync_dst
 

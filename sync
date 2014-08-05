@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # TODO: chercher-remplacer basés sur des tableaux utilisables pour les URL, les chemins, les noms d'hôtes...
 # TODO: synchronisation de dossiers basée sur des tableaux
@@ -178,7 +178,7 @@ do
     replace_dst_current_value=${replace_dst["$k"]}
     replace_src_escaped=`echo "${replace_src_current_value}" | sed 's/\//\\\\\//g'`
     MSG4="`expr 1 + \"$k\"`"
-    MSG5=": \"${replace_src_current_value}\" => \"${replace_dst_current_value}\""
+    MSG5=": \"${replace_src_current_value}\" => \"${replace_dst_current_value}\" "
     printf "\r`tput el`"                            # affichage uniquement
     echo >> $logfile                                # log uniquement
     echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement
@@ -230,10 +230,13 @@ MSG2="${#sync_src[@]}";
 MSG3="dossiers                             "
 for k in "${!sync_src[@]}"
 do
-    sync_src_current_value=${sync_src[$k]}
-    sync_dst_current_value=${sync_dst[$k]}
+    sync_src_current_value="${sync_src[$k]}"
+    sync_dst_current_value="${sync_dst[$k]}"
+    # ajoute le slash final s'il a été oublié !
+    sync_src_current_value="${sync_src_current_value/%\//}/"
+    sync_dst_current_value="${sync_dst_current_value/%\//}/"
     MSG4="`expr 1 + $k`"
-    MSG5=": ${sync_src_current_value} => ${sync_dst_current_value}"
+    MSG5=": \"${sync_src_current_value}\" => \"${sync_dst_current_value}\" "
     printf "\r`tput el`"                            # affichage uniquement
     echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement
     printf "$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4" | tee -a $logfile

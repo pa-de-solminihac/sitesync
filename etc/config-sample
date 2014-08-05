@@ -11,9 +11,8 @@ replace_src[2]="www.site.com"
 replace_dst[2]="local.site.com"
 
 # Synchronisation des fichiers : chemins locaux et distants
-# ATTENTION A BIEN METTRE LE "/" FINAL
-sync_src[0]="/remote/path/to/site.com/www/media/"
-sync_dst[0]="/local/path/to/local.site.com/media/"
+sync_src[0]="/remote/path/to/site.com/www/media"
+sync_dst[0]="/local/path/to/local.site.com/media"
 
 # Connexion en ssh (au serveur source)
 src_server="nsXXXX.ovh.net"
