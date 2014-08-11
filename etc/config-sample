@@ -47,7 +47,7 @@ src_path_to_mysqldump=/usr/bin/mysqldump
 dst_path_to_mysqldump=/usr/bin/mysqldump
 dst_path_to_mysql=/usr/bin/mysql
 dst_path_to_rsync=/usr/bin/rsync
-dst_path_to_php="/usr/bin/php"
+dst_path_to_php=/usr/bin/php
 dst_path_to_resilient_replace="$(dirname $0)/bin/resilient_replace"
 logfile="$(dirname $0)/log/sitesync.log"
 
