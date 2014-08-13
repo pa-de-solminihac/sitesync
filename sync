@@ -108,11 +108,11 @@ then
     fi
 fi
 
-if [ "${#replace_src[@]}" != "${#replace_dst[@]}" ];
-then
-    echo "Incohérence dans les remplacements demandés, vérifiez les tableaux 'replace_src' et 'replace_dst' dans le fichier $(dirname $0)/etc/config" | tee -a $logfile
-    exit
-fi
+#if [ "${#replace_src[@]}" != "${#replace_dst[@]}" ];
+#then
+    #echo "Incohérence dans les remplacements demandés, vérifiez les tableaux 'replace_src' et 'replace_dst' dans le fichier $(dirname $0)/etc/config" | tee -a $logfile
+    #exit
+#fi
 
 if [ "${#sync_src[@]}" != "${#sync_dst[@]}" ];
 then

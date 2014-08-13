@@ -1,25 +1,21 @@
-# Chercher-remplacer : URL locales et distantes
-replace_src[0]="http://www.site.com"
-replace_dst[0]="http://local.site.com"
+# site source
+src_site_protocol="http://"
+src_site_host="www.site.com"
+src_root_slug=""
+src_files_root="/remote/path/to/site/www";
 
-# Chercher-remplacer : chemins locaux et distants
-replace_src[1]="/remote/path/to/site.com/www"
-replace_dst[1]="/local/path/to/local.site.com"
+# site destination
+dst_site_protocol="http://"
+dst_site_host="local.site.com"
+dst_root_slug="/site"
+dst_files_root="/local/path/to/site";
 
-# Chercher-remplacer : hôtes locaux et distants
-replace_src[2]="www.site.com"
-replace_dst[2]="local.site.com"
-
-# Synchronisation des fichiers : chemins locaux et distants
-sync_src[0]="/remote/path/to/site.com/www/media"
-sync_dst[0]="/local/path/to/local.site.com/media"
-
-# Connexion en ssh (au serveur source)
-src_server="nsXXXX.ovh.net"
+# connexion en ssh (au serveur source)
+src_server="$src_site_host"
 src_unixuser="root"
 src_ssh_port="22"
 
-# Source (= serveur distant, vu depuis le serveur src_server)
+# source (= serveur distant, vu depuis le serveur src_server)
 src_hostname="localhost"
 src_port=""
 src_dbname="dbname"
@@ -30,11 +26,27 @@ src_dbpass=""
 dst_hostname="localhost"
 dst_port=""
 dst_dbname="local_dbname"
-dst_dbuser="user"
+dst_dbuser="root"
 dst_dbpass=""
 
+# chercher-remplacer : URL locales et distantes
+replace_src[0]="${src_site_protocol}${src_site_host}${src_root_slug}"
+replace_dst[0]="${dst_site_protocol}${dst_site_host}${dst_root_slug}"
+
+# Chercher-remplacer : chemins locaux et distants
+replace_src[1]="$src_files_root"
+replace_dst[1]="$dst_files_root"
+
+# Chercher-remplacer : hôtes locaux et distants
+replace_src[2]="$src_site_host"
+replace_dst[2]="$dst_site_host"
+
+# Synchronisation des fichiers : chemins locaux et distants
+sync_src[0]="$src_files_root"
+sync_dst[0]="$dst_files_root"
+
 # Options de synchronisation
-src_type="remote_file"                  # ou faut il récupérer les données : local_file|local_base|remote_file|remote_base
+src_type="remote_base"                  # ou faut il récupérer les données : local_file|local_base|remote_file|remote_base
 src_file="/path/to/dbname.sql.7z"       # si local_file ou remote_file, il faut le chemin vers le fichier
 compress=1                              # si src_type=local_base|remote_base : compression à la volée
                                         # si src_type=local_file|remote_file, prise en charge des fichiers compressés
