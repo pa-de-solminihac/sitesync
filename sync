@@ -7,8 +7,9 @@ declare -a replace_dst
 declare -a sync_src
 declare -a sync_dst
 
-source $(dirname $0)/inc/config-base
-source $(dirname $0)/etc/config
+path_to_sitesync="$(dirname "$0")"
+source $path_to_sitesync/inc/config-base
+source $path_to_sitesync/etc/config
 
 # activation compression, selon le type de source (gzip supporté globalement, 7z uniquement en remote_file ou local_file) a cause des ses limitations
 src_file_extension=""
@@ -84,9 +85,9 @@ arg_connexion_dst="$arg_dst_hostname$arg_dst_port$arg_dst_dbuser$arg_dst_dbpass"
 
 # echappement des variables : caracteres '.' et '/'
 curdate=`date +%Y%m%d%H%M%S`
-sqlfile="$(dirname $0)/tmp/$src_dbname$curdate.sql"
-sqlfile_tmp="$(dirname $0)/tmp/$src_dbname.sql-tmp.$src_file_extension"
-sqlfile_backup="$(dirname $0)/tmp/$src_dbname.sql"
+sqlfile="$path_to_sitesync/tmp/$src_dbname$curdate.sql"
+sqlfile_tmp="$path_to_sitesync/tmp/$src_dbname.sql-tmp.$src_file_extension"
+sqlfile_backup="$path_to_sitesync/tmp/$src_dbname.sql"
 
 echo "Lancement de la synchro" > $logfile # RAZ du fichier log
 echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
@@ -110,13 +111,13 @@ fi
 
 #if [ "${#replace_src[@]}" != "${#replace_dst[@]}" ];
 #then
-    #echo "Incohérence dans les remplacements demandés, vérifiez les tableaux 'replace_src' et 'replace_dst' dans le fichier $(dirname $0)/etc/config" | tee -a $logfile
+    #echo "Incohérence dans les remplacements demandés, vérifiez les tableaux 'replace_src' et 'replace_dst' dans le fichier $path_to_sitesync/etc/config" | tee -a $logfile
     #exit
 #fi
 
 if [ "${#sync_src[@]}" != "${#sync_dst[@]}" ];
 then
-    echo "Incohérence dans les synchronisations demandées, vérifiez les tableaux 'sync_src' et 'sync_dst' dans le fichier $(dirname $0)/etc/config" | tee -a $logfile
+    echo "Incohérence dans les synchronisations demandées, vérifiez les tableaux 'sync_src' et 'sync_dst' dans le fichier $path_to_sitesync/etc/config" | tee -a $logfile
     exit
 fi
 
@@ -198,13 +199,13 @@ echo -n "$MSG" | tee -a $logfile
 
 # teste s'il y a des fichiers .sh
 shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
-files=(hook/before/*.sh);
+files=($path_to_sitesync/hook/before/*.sh);
 [ "$resetnullglob" ] && shopt -u nullglob
 # s'il y a des fichiers .sh
 if [ ${#files[@]} -gt 0 ];
 then
     echo | tee -a $logfile
-    for fich in hook/before/*.sh;
+    for fich in $path_to_sitesync/hook/before/*.sh;
     do
         echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
         source $fich;
@@ -251,13 +252,13 @@ MSG="6/6 : adaptations apres import (fichiers hook/after/*.sh)";
 echo -n "$MSG" | tee -a $logfile
 # teste s'il y a des fichiers .sh
 shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
-files=(hook/after/*.sh);
+files=($path_to_sitesync/hook/after/*.sh);
 [ "$resetnullglob" ] && shopt -u nullglob
 # s'il y a des fichiers .sh
 if [ ${#files[@]} -gt 0 ];
 then
     echo | tee -a $logfile
-    for fich in hook/after/*.sh;
+    for fich in $path_to_sitesync/hook/after/*.sh;
     do
         echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
         source $fich;
