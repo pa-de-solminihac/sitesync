@@ -33,11 +33,11 @@ dst_dbpass=""
 replace_src[0]="${src_site_protocol}${src_site_host}${src_root_slug}"
 replace_dst[0]="${dst_site_protocol}${dst_site_host}${dst_root_slug}"
 
-# Chercher-remplacer : chemins locaux et distants
+# chercher-remplacer : chemins locaux et distants
 replace_src[1]="$src_files_root"
 replace_dst[1]="$dst_files_root"
 
-# Chercher-remplacer : hôtes locaux et distants
+# chercher-remplacer : hôtes locaux et distants
 replace_src[2]="$src_site_host"
 replace_dst[2]="$dst_site_host"
 
@@ -60,8 +60,8 @@ dst_path_to_mysqldump=/usr/bin/mysqldump
 dst_path_to_mysql=/usr/bin/mysql
 dst_path_to_rsync=/usr/bin/rsync
 dst_path_to_php=/usr/bin/php
-dst_path_to_resilient_replace="$(dirname $0)/bin/resilient_replace"
-logfile="$(dirname $0)/log/sitesync.log"
+dst_path_to_resilient_replace="$path_to_sitesync/bin/resilient_replace"
+logfile="$path_to_sitesync/log/sitesync.log"
 
 # scripts personnalises a appliquer avant et apres import de la BD :
 # mettez ce que vous voulez dans ./hook/before/*.sh et ./hook/after/*.sh
