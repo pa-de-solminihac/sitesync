@@ -7,6 +7,27 @@ declare -a replace_dst
 declare -a sync_src
 declare -a sync_dst
 
+# options CLI
+skip_sql=0
+skip_files=0
+if [[ ( $# -lt 2 ) && (( "$1" == "sql" ) || ( "$1" == "files" )) ]];
+then 
+    if [ "$1" == "sql" ];
+    then
+        skip_files=1
+    fi
+    if [ "$1" == "files" ];
+    then
+        skip_sql=1
+    fi
+else
+    if [[ ( $# -gt 0 ) ]];
+    then
+        echo "Usage: $0 [files|dir]"
+        exit
+    fi
+fi
+
 path_to_sitesync="$(dirname "$0")"
 source $path_to_sitesync/inc/config-base
 source $path_to_sitesync/etc/config
@@ -121,150 +142,187 @@ then
     exit
 fi
 
-# backup distant ou local
-RECUP_KO=1
-case "$src_type" in
-    "remote_file")
-        MSG="1/6 : récupération du fichier dump (distant)";
-        printf "\r`tput el`%s" "$MSG" | tee -a $logfile
-        ssh -p $src_ssh_port $src_unixuser@$src_server "$DO_GZIP $src_file" > $sqlfile_tmp && \
-            echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile && \
-            $DO_GUNZIP $sqlfile_tmp 2>/dev/null \
-            >> $sqlfile && rm -f $sqlfile_tmp
-        RECUP_KO=$?
-        ;;
-    "local_file")
-        MSG="1/6 : récupération du fichier dump (local : $src_file)";
-        printf "\r`tput el`%s" "$MSG" | tee -a $logfile
-        echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile_tmp && \
-            $DO_GUNZIP $src_file 2>/dev/null \
-            >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
-        RECUP_KO=$?
-        ;;
-    "remote_base")
-        MSG="1/6 : dump de la base (distante)";
-        printf "\r`tput el`%s" "$MSG" | tee -a $logfile
-        echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile_tmp && \
-            ssh -p $src_ssh_port $src_unixuser@$src_server "($src_path_to_mysqldump --opt --routines --no-data --no-create-db $sql_options $arg_connexion_src $src_dbname && $src_path_to_mysqldump --opt --routines --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $DO_GZIP" | $DO_GUNZIP \
-            >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
-        RECUP_KO=$?
-        ;;
-    "local_base")
-        MSG="1/6 : dump de la base (locale)";
-        printf "\r`tput el`%s" "$MSG" | tee -a $logfile
-        echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile_tmp && \
-            ($dst_path_to_mysqldump --opt --routines --no-data --no-create-db $sql_options $arg_connexion_src $src_dbname && $dst_path_to_mysqldump --opt --routines --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname) \
-            >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
-        RECUP_KO=$?
-        ;;
-esac
-
-if [ $RECUP_KO -gt 0 ];
+if [ "$skip_sql" == "0" ];
 then
-    let COL=70-${#MSG}
-    printf "%${COL}s\n" "KO" | tee -a $logfile
-    exit
+    # backup distant ou local
+    RECUP_KO=1
+    case "$src_type" in
+        "remote_file")
+            MSG="1/6 : récupération du fichier dump (distant)";
+            printf "\r`tput el`%s" "$MSG" | tee -a $logfile
+            ssh -p $src_ssh_port $src_unixuser@$src_server "$DO_GZIP $src_file" > $sqlfile_tmp && \
+                echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile && \
+                $DO_GUNZIP $sqlfile_tmp 2>/dev/null \
+                >> $sqlfile && rm -f $sqlfile_tmp
+            RECUP_KO=$?
+            ;;
+        "local_file")
+            MSG="1/6 : récupération du fichier dump (local : $src_file)";
+            printf "\r`tput el`%s" "$MSG" | tee -a $logfile
+            echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile_tmp && \
+                $DO_GUNZIP $src_file 2>/dev/null \
+                >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
+            RECUP_KO=$?
+            ;;
+        "remote_base")
+            MSG="1/6 : dump de la base (distante)";
+            printf "\r`tput el`%s" "$MSG" | tee -a $logfile
+            echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile_tmp && \
+                ssh -p $src_ssh_port $src_unixuser@$src_server "($src_path_to_mysqldump --opt --routines --no-data --no-create-db $sql_options $arg_connexion_src $src_dbname && $src_path_to_mysqldump --opt --routines --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $DO_GZIP" | $DO_GUNZIP \
+                >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
+            RECUP_KO=$?
+            ;;
+        "local_base")
+            MSG="1/6 : dump de la base (locale)";
+            printf "\r`tput el`%s" "$MSG" | tee -a $logfile
+            echo "DROP DATABASE IF EXISTS $dst_dbname; CREATE DATABASE $dst_dbname; USE $dst_dbname; " > $sqlfile_tmp && \
+                ($dst_path_to_mysqldump --opt --routines --no-data --no-create-db $sql_options $arg_connexion_src $src_dbname && $dst_path_to_mysqldump --opt --routines --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname) \
+                >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
+            RECUP_KO=$?
+            ;;
+    esac
+    if [ $RECUP_KO -gt 0 ];
+    then
+        let COL=70-${#MSG} && \
+        printf "%${COL}s\n" "KO" | tee -a $logfile
+        exit
+    else
+        let COL=70-${#MSG} && \
+        printf "%${COL}s\n" "OK" | tee -a $logfile
+    fi
 else
-    let COL=70-${#MSG}
-    printf "%${COL}s\n" "OK" | tee -a $logfile
+    MSG="1/6 : récupération du fichier dump (distant)";
+    printf "\r`tput el`%s" "$MSG" | tee -a $logfile
+    let COL=70-${#MSG} && \
+    printf "%${COL}s\n" ".." | tee -a $logfile
 fi
 
 # remplacement des URL et chemins (même sérialisés)
 MSG1="2/6 : remplacement de";
 MSG2="${#replace_src[@]}";
 MSG3="URL et chemins                          "
-for k in "${!replace_src[@]}"
-do
-    replace_src_current_value=${replace_src["$k"]}
-    replace_dst_current_value=${replace_dst["$k"]}
-    replace_src_escaped=`echo "${replace_src_current_value}" | sed 's/\//\\\\\//g'`
-    MSG4="`expr 1 + \"$k\"`"
-    MSG5=": \"${replace_src_current_value}\" => \"${replace_dst_current_value}\" "
-    printf "\r`tput el`"                            # affichage uniquement
-    echo >> $logfile                                # log uniquement
-    echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement
-    printf "$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4" | tee -a $logfile
-    $dst_path_to_php $dst_path_to_resilient_replace -i "$replace_src_escaped" "$replace_dst_current_value" $sqlfile
-done
-printf "\r`tput el`" # affichage uniquement
-echo >> $logfile     # log uniquement
-printf "$MSG1 %3d $MSG3  OK" "$MSG2" | tee -a $logfile
-echo | tee -a $logfile
-echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
+if [ "$skip_sql" == "0" ];
+then
+    for k in "${!replace_src[@]}"
+    do
+        replace_src_current_value=${replace_src["$k"]}
+        replace_dst_current_value=${replace_dst["$k"]}
+        replace_src_escaped=`echo "${replace_src_current_value}" | sed 's/\//\\\\\//g'`
+        MSG4="`expr 1 + \"$k\"`"
+        MSG5=": \"${replace_src_current_value}\" => \"${replace_dst_current_value}\" "
+        printf "\r`tput el`"                            # affichage uniquement
+        echo >> $logfile                                # log uniquement
+        echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement
+        printf "$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4" | tee -a $logfile
+        $dst_path_to_php $dst_path_to_resilient_replace -i "$replace_src_escaped" "$replace_dst_current_value" $sqlfile
+    done
+    printf "\r`tput el`" # affichage uniquement
+    echo >> $logfile     # log uniquement
+    printf "$MSG1 %3d $MSG3  OK" "$MSG2" | tee -a $logfile
+    echo | tee -a $logfile
+    echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
+else
+    printf "$MSG1 %3d $MSG3  .." "$MSG2" | tee -a $logfile
+    echo | tee -a $logfile
+fi
 
 # adaptation spécifiques
 MSG="3/6 : adaptations avant import (fichiers hook/before/*.sh)";
 # applique les fichiers dans hook
 echo -n "$MSG" | tee -a $logfile
 
-# teste s'il y a des fichiers .sh
-shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
-files=($path_to_sitesync/hook/before/*.sh);
-[ "$resetnullglob" ] && shopt -u nullglob
-# s'il y a des fichiers .sh
-if [ ${#files[@]} -gt 0 ];
+if [ "$skip_sql" == "0" ];
 then
-    echo | tee -a $logfile
-    for fich in $path_to_sitesync/hook/before/*.sh;
-    do
-        echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
-        source $fich;
-    done
+    # teste s'il y a des fichiers .sh
+    shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
+    files=($path_to_sitesync/hook/before/*.sh);
+    [ "$resetnullglob" ] && shopt -u nullglob
+    # s'il y a des fichiers .sh
+    if [ ${#files[@]} -gt 0 ];
+    then
+        echo | tee -a $logfile
+        for fich in $path_to_sitesync/hook/before/*.sh;
+        do
+            echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
+            source $fich;
+        done
+    else
+        let COL=70-${#MSG} && \
+        printf "%${COL}s\n" ".." | tee -a $logfile
+    fi
+    echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 else
-    let COL=70-${#MSG}
+    let COL=70-${#MSG} && \
     printf "%${COL}s\n" ".." | tee -a $logfile
 fi
-echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 
 # importe la BD modifiee
 MSG="4/6 : import de la base de donnees"
 echo -n "$MSG" | tee -a $logfile
-cat $sqlfile | \
-    $dst_path_to_mysql $arg_connexion_dst $dst_dbname --show-warnings >> $logfile && \
-    mv -f $sqlfile $sqlfile_backup && \
+if [ "$skip_sql" == "0" ];
+then
+    cat $sqlfile | \
+        $dst_path_to_mysql $arg_connexion_dst $dst_dbname --show-warnings >> $logfile && \
+        mv -f $sqlfile $sqlfile_backup && \
+        let COL=70-${#MSG} && \
+        printf "%${COL}s\n" "OK" | tee -a $logfile
+    echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
+else
     let COL=70-${#MSG} && \
-    printf "%${COL}s\n" "OK" | tee -a $logfile
-echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
+    printf "%${COL}s\n" ".." | tee -a $logfile
+fi
 
 MSG1="5/6 : synchronisation de";
 MSG2="${#sync_src[@]}";
 MSG3="dossiers                             "
-for k in "${!sync_src[@]}"
-do
-    sync_src_current_value="${sync_src[$k]}"
-    sync_dst_current_value="${sync_dst[$k]}"
-    # ajoute le slash final s'il a été oublié !
-    sync_src_current_value="${sync_src_current_value/%\//}/"
-    sync_dst_current_value="${sync_dst_current_value/%\//}/"
-    MSG4="`expr 1 + $k`"
-    MSG5=": \"${sync_src_current_value}\" => \"${sync_dst_current_value}\" "
-    printf "\r`tput el`"                            # affichage uniquement
-    echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement
-    printf "$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4" | tee -a $logfile
-    $dst_path_to_rsync $rsync_options -e "ssh -p $src_ssh_port" $src_unixuser@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile 2>&1
-done
-printf "\r`tput el`$MSG1 %3d $MSG3  OK" "$MSG2" | tee -a $logfile
-echo | tee -a $logfile
-echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
+if [ "$skip_files" == "0" ];
+then
+    for k in "${!sync_src[@]}"
+    do
+        sync_src_current_value="${sync_src[$k]}"
+        sync_dst_current_value="${sync_dst[$k]}"
+        # ajoute le slash final s'il a été oublié !
+        sync_src_current_value="${sync_src_current_value/%\//}/"
+        sync_dst_current_value="${sync_dst_current_value/%\//}/"
+        MSG4="`expr 1 + $k`"
+        MSG5=": \"${sync_src_current_value}\" => \"${sync_dst_current_value}\" "
+        printf "\r`tput el`"                            # affichage uniquement
+        echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement
+        printf "$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4" | tee -a $logfile
+        $dst_path_to_rsync $rsync_options -e "ssh -p $src_ssh_port" $src_unixuser@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile 2>&1
+    done
+    printf "\r`tput el`$MSG1 %3d $MSG3  OK" "$MSG2" | tee -a $logfile
+    echo | tee -a $logfile
+    echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
+else
+    printf "\r`tput el`$MSG1 %3d $MSG3  .." "$MSG2" | tee -a $logfile
+    echo | tee -a $logfile
+fi
 
 MSG="6/6 : adaptations apres import (fichiers hook/after/*.sh)";
 # applique les fichiers dans hook
 echo -n "$MSG" | tee -a $logfile
-# teste s'il y a des fichiers .sh
-shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
-files=($path_to_sitesync/hook/after/*.sh);
-[ "$resetnullglob" ] && shopt -u nullglob
-# s'il y a des fichiers .sh
-if [ ${#files[@]} -gt 0 ];
+if [ "$skip_files" == "0" ];
 then
-    echo | tee -a $logfile
-    for fich in $path_to_sitesync/hook/after/*.sh;
-    do
-        echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
-        source $fich;
-    done
+    # teste s'il y a des fichiers .sh
+    shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
+    files=($path_to_sitesync/hook/after/*.sh);
+    [ "$resetnullglob" ] && shopt -u nullglob
+    # s'il y a des fichiers .sh
+    if [ ${#files[@]} -gt 0 ];
+    then
+        echo | tee -a $logfile
+        for fich in $path_to_sitesync/hook/after/*.sh;
+        do
+            echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
+            source $fich;
+        done
+    else
+        let COL=70-${#MSG} && \
+        printf "%${COL}s\n" ".." | tee -a $logfile
+    fi
 else
-    let COL=70-${#MSG}
+    let COL=70-${#MSG} && \
     printf "%${COL}s\n" ".." | tee -a $logfile
 fi
 
