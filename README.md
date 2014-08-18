@@ -25,6 +25,20 @@ password=********
 
 Vous pouvez ajouter des scripts à appliquer avant / après l'import de la base de données dans le dossier ```/hook```
 
+Configuration
+---
+
+L'outil a besoin d'un fichier de configuration pour fonctionner. On peut se baser sur le fichier `config-sample` fourni :
+```bash
+cp etc/config-sample etc/config
+```
+
+Il faut ensuite éditer le fichier `etc/config` pour l'adapter à notre besoin.
+
+```bash
+vim etc/config
+```
+
 Utilisation
 ---
 
@@ -53,5 +67,5 @@ Compatibilité
 
 Fonctionne sous Linux, Windows avec Cygwin, voire Mac (pas retesté depuis un bout de temps...)
 
-***Note*** : ce script utilise resilient_replace, qu'on trouve dans le dossier ```/bin```, et disponible indépendamment sur github :
+***Note*** : ce script utilise l'outil `resilient_replace` pour faire des chercher-remplacer sans casser les données sérialisées, qu'on trouve dans le dossier ```/bin```, et disponible indépendamment sur github :
 https://github.com/pa-de-solminihac/resilient_replace
