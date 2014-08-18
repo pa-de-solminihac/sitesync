@@ -6,28 +6,6 @@ Sitesync
 Configuration
 ---
 
-La configuration des accès se fait dans le fichier ```/etc/config```
-
-Afin de ne pas rendre visibles les mots de passe en clair, et pour une utilisation conviviale :
-
-* configurez l'accès SSH par clés :
-
-```bash
-$ ssh-copy-id user@server
-```
-
-* configurez les fichiers ```.my.cnf``` dans votre dossier ```$HOME``` et dans celui de l'hebergement
-
-```ini
-[client]
-password=********
-```
-
-Vous pouvez ajouter des scripts à appliquer avant / après l'import de la base de données dans le dossier ```/hook```
-
-Configuration
----
-
 L'outil a besoin d'un fichier de configuration pour fonctionner. On peut se baser sur le fichier `config-sample` fourni :
 ```bash
 cp etc/config-sample etc/config
@@ -38,6 +16,16 @@ Il faut ensuite éditer le fichier `etc/config` pour l'adapter à notre besoin.
 ```bash
 vim etc/config
 ```
+
+Pour ne pas avoir à saisir le mot de passe SSH à chaque fois, utiliser l'accès SSH par clés :
+
+```bash
+$ ssh-copy-id user@server
+```
+
+Vous pouvez ajouter des scripts à appliquer avant / après l'import de la base de données dans les dossiers `/hook/before` et `hook/after`. À titre d'exemple, des hooks pour Prestashop 1.6 sont présents. 
+
+__Important__ : il faut renommer les scripts hook en leur donnant l'extension `.sh` pour qu'ils soient pris en compte !
 
 Utilisation
 ---
