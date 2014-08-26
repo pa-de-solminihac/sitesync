@@ -53,7 +53,7 @@ Fonctionnement
 Compatibilité
 ---
 
-Fonctionne sous Linux, Windows avec Cygwin (penser à prendre les paquets ssh, mysql, rsync...), voire Mac (pas retesté depuis un bout de temps...)
+Fonctionne sous Linux, Mac, et Windows avec Cygwin (penser à prendre les paquets ssh, mysql, rsync...).
 
 ***Note*** : ce script utilise l'outil `resilient_replace` pour faire des chercher-remplacer sans casser les données sérialisées, qu'on trouve dans le dossier ```/bin```, et disponible indépendamment sur github :
 https://github.com/pa-de-solminihac/resilient_replace
