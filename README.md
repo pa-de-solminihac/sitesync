@@ -3,6 +3,13 @@ Sitesync
 
 ***Synchronise un site local avec un site distant.***
 
+Installation
+---
+
+```bash
+git clone https://github.com/pa-de-solminihac/sitesync
+```
+
 Configuration
 ---
 
