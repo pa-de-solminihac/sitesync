@@ -55,4 +55,4 @@ Compatibilité
 
 Fonctionne sous Linux, Mac, et Windows avec [Cygwin](http://cygwin.com/install.html) (penser à prendre les paquets ssh, mysql, rsync...).
 
-***Remarque*** : sitesync utilise l'outil [resilient_replace](https://github.com/pa-de-solminihac/resilient_replace) pour faire des chercher-remplacer sans casser les données sérialisées, embarqué dans le dossier ```/bin```, et disponible indépendamment sur github.
+***Remarque*** : sitesync embarque déjà dans son dossier ```/bin``` l'outil [resilient_replace](https://github.com/pa-de-solminihac/resilient_replace) pour faire des chercher-remplacer sans casser les données sérialisées.
