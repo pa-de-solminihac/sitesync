@@ -110,7 +110,7 @@ sqlfile="$path_to_sitesync/tmp/$src_dbname$curdate.sql"
 sqlfile_tmp="$path_to_sitesync/tmp/$src_dbname.sql-tmp.$src_file_extension"
 sqlfile_backup="$path_to_sitesync/tmp/$src_dbname.sql"
 
-echo "Lancement de la synchro" > $logfile # RAZ du fichier log
+echo "Lancement de la synchro" >> $logfile # RAZ du fichier log
 echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 
 # contrôles d'erreurs
