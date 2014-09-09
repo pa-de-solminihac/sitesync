@@ -60,6 +60,6 @@ Fonctionnement
 Compatibilité
 ---
 
-Fonctionne sous Linux, Mac, et Windows avec [Cygwin](http://cygwin.com/install.html) (penser à prendre les paquets ssh, mysql, rsync...).
+Fonctionne sous Linux, Mac, et Windows avec [Cygwin](http://cygwin.com/install.html) (penser à prendre les paquets ssh, mysql, rsync et ncurses... il vous faudra aussi pouvoir exécuter PHP en ligne de commande dans cygwin).
 
 ***Remarque*** : `sitesync` embarque déjà dans son dossier ```/bin``` l'outil [resilient_replace](https://github.com/pa-de-solminihac/resilient_replace) pour faire des chercher-remplacer sans casser les données sérialisées.
