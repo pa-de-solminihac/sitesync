@@ -30,16 +30,22 @@ dst_dbuser="root"
 dst_dbpass=""
 
 # chercher-remplacer : URL locales et distantes
-replace_src[0]="${src_site_protocol}${src_site_host}${src_root_slug}"
+replace_src[0]="${src_site_protocol}www.${src_site_host}${src_root_slug}"
 replace_dst[0]="${dst_site_protocol}${dst_site_host}${dst_root_slug}"
 
+replace_src[1]="${src_site_protocol}${src_site_host}${src_root_slug}"
+replace_dst[1]="${dst_site_protocol}${dst_site_host}${dst_root_slug}"
+
 # chercher-remplacer : chemins locaux et distants
-replace_src[1]="$src_files_root"
-replace_dst[1]="$dst_files_root"
+replace_src[2]="$src_files_root"
+replace_dst[2]="$dst_files_root"
 
 # chercher-remplacer : hôtes locaux et distants
-replace_src[2]="$src_site_host"
-replace_dst[2]="$dst_site_host"
+replace_src[3]="www.$src_site_host"
+replace_dst[3]="$dst_site_host"
+
+replace_src[4]="$src_site_host"
+replace_dst[4]="$dst_site_host"
 
 # Synchronisation des fichiers : chemins locaux et distants
 sync_src[0]="$src_files_root"
