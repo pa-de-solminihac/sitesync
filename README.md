@@ -48,7 +48,7 @@ Pour ne synchroniser que la base de données :
 ./sync sql
 ```
 
-***Astuce*** :
+***Astuce***
 
 Pour ne pas avoir à saisir le mot de passe SSH à chaque fois, utiliser l'accès SSH par clés :
 
@@ -93,15 +93,18 @@ compress=1
 ```
 
 ***Remarque***
+
 Si __src_type__ est `local_base` ou `remote_base`, le paramètre __compress__ prend un sens différent. Il indique si on souhaite activer ou non la compression à la volée.
 
-Options la synchronisation SQL :
+***Options la synchronisation SQL***
+
 ```ini
 sql_ignores="--ignore-table=$src_dbname.table1 --ignore-table=$src_dbname.table2 "
 sql_options="--default-character-set=utf8"
 ```
 
-Options pour la synchronisation des fichiers :
+***Options pour la synchronisation des fichiers***
+
 ```ini
 rsync_options="-uvrpz --exclude /sitesync/ --exclude /stats/ --exclude .git/ --exclude .svn/ --exclude .cvs/ "
 ```
