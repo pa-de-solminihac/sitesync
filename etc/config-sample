@@ -56,8 +56,9 @@ src_type="remote_base"                  # ou faut il récupérer les données : 
 src_file="/path/to/dbname.sql.7z"       # si local_file ou remote_file, il faut le chemin vers le fichier
 compress=1                              # si src_type=local_base|remote_base : compression à la volée
                                         # si src_type=local_file|remote_file, prise en charge des fichiers compressés
+# pour accélérer le processus, on peut ignorer le contenu de certaines tables
+sql_ignores="--ignore-table=$src_dbname.table_a_ignorer_1 --ignore-table=$src_dbname.table_a_ignorer_2"
 sql_options="--default-character-set=utf8 --routines "
-sql_ignores=""                          # pour accélérer le processus, on peut ignorer le contenu de certaines tables
 rsync_options="-uvrpz --exclude /sitesync/ --exclude /stats/ --exclude .git/ --exclude .svn/ --exclude .cvs/ "
 
 # Chemins vers les outils
