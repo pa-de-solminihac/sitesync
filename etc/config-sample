@@ -1,3 +1,7 @@
+#######################
+# CONFIGURATION BASIQUE
+#######################
+
 # site source
 src_site_protocol="http://"
 src_site_host="www.site.com"
@@ -12,7 +16,7 @@ dst_files_root="/local/path/to/site";
 
 # connexion en ssh (au serveur source)
 src_server="$src_site_host"
-src_unixuser="root"
+src_unixuser="username"
 src_ssh_port="22"
 
 # source (= serveur distant, vu depuis le serveur src_server)
@@ -23,11 +27,19 @@ src_dbuser="root"
 src_dbpass=""
 
 # Destination (= serveur local)
-dst_hostname="localhost"
+dst_hostname="127.0.0.1"
 dst_port=""
 dst_dbname="local_dbname"
 dst_dbuser="root"
 dst_dbpass=""
+
+# Synchronisation des fichiers : chemins locaux et distants
+sync_src[0]="$src_files_root"
+sync_dst[0]="$dst_files_root"
+
+#######################
+# CONFIGURATION AVANCEE
+#######################
 
 # chercher-remplacer : URL locales et distantes
 replace_src[0]="${src_site_protocol}www.${src_site_host}${src_root_slug}"
@@ -47,13 +59,9 @@ replace_dst[3]="$dst_site_host"
 replace_src[4]="$src_site_host"
 replace_dst[4]="$dst_site_host"
 
-# Synchronisation des fichiers : chemins locaux et distants
-sync_src[0]="$src_files_root"
-sync_dst[0]="$dst_files_root"
-
 # Options de synchronisation
 src_type="remote_base"                  # ou faut il récupérer les données : local_file|local_base|remote_file|remote_base
-src_file="/path/to/dbname.sql.7z"       # si local_file ou remote_file, il faut le chemin vers le fichier
+src_file="/path/to/dbname.sql.gz"       # si local_file ou remote_file, il faut le chemin vers le fichier
 compress=1                              # si src_type=local_base|remote_base : compression à la volée
                                         # si src_type=local_file|remote_file, prise en charge des fichiers compressés
 # pour accélérer le processus, on peut ignorer le contenu de certaines tables
@@ -62,11 +70,11 @@ sql_options="--default-character-set=utf8 --routines "
 rsync_options="-uvrpz --exclude /sitesync/ --exclude /stats/ --exclude .git/ --exclude .svn/ --exclude .cvs/ "
 
 # Chemins vers les outils
-src_path_to_mysqldump=/usr/bin/mysqldump
-dst_path_to_mysqldump=/usr/bin/mysqldump
-dst_path_to_mysql=/usr/bin/mysql
-dst_path_to_rsync=/usr/bin/rsync
-dst_path_to_php=/usr/bin/php
+src_path_to_mysqldump=mysqldump
+dst_path_to_mysqldump=mysqldump
+dst_path_to_mysql=mysql
+dst_path_to_rsync=rsync
+dst_path_to_php=php
 dst_path_to_resilient_replace="$path_to_sitesync/bin/resilient_replace"
 logfile="$path_to_sitesync/log/sitesync.log"
 
