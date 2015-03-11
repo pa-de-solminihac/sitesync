@@ -67,7 +67,9 @@ compress=1                              # si src_type=local_base|remote_base : c
 # pour accélérer le processus, on peut ignorer le contenu de certaines tables
 sql_ignores="--ignore-table=$src_dbname.table_a_ignorer_1 --ignore-table=$src_dbname.table_a_ignorer_2"
 sql_options="--default-character-set=utf8 --routines "
-rsync_options="-uvrpz --exclude /sitesync/ --exclude /stats/ --exclude .git/ --exclude .svn/ --exclude .cvs/ "
+
+# options de transfert et fichiers à ignorer
+rsync_options="-uvrpz --exclude /sitesync/ --exclude /stats/ --exclude .git/ --exclude .svn/ --exclude .cvs/ --exclude .DS_Store "
 
 # Chemins vers les outils
 src_path_to_mysqldump=mysqldump
