@@ -144,6 +144,13 @@ user=root
 password=
 ```
 
+Pour Xampp, afin que l'import du dump SQL se déroule bien, il peut être nécessaire de modifier la configuration de mysql (fichier `my.ini`, section `[mysqld]`) : 
+```ini
+innodb_buffer_pool_size = 32M
+max_allowed_packet = 32M
+innodb_log_file_size = 32M
+```
+
 Dans `~/.bash_profile`, afin de pouvoir utiliser `php` et `mysql` depuis la ligne de commande : 
 ```bash
 export PATH=$PATH:/cygdrive/c/xampp/mysql/bin:/cygdrive/c/xampp/php
@@ -154,13 +161,6 @@ Et pour finir, lancer :
 ```bash
 ssh-keygen -A
 source ~/.bash_profile
-```
-
-Pour Xampp, afin que l'import du dump SQL se déroule bien, il peut être nécessaire de modifier la configuration de mysql (fichier `my.ini`, section `[mysqld]`) : 
-```ini
-innodb_buffer_pool_size = 32M
-max_allowed_packet = 32M
-innodb_log_file_size = 32M
 ```
 
 ***Remarque*** : `sitesync` embarque déjà dans son dossier ```/bin``` l'outil [resilient_replace](https://github.com/pa-de-solminihac/resilient_replace) pour faire des chercher-remplacer sans casser les données sérialisées.
