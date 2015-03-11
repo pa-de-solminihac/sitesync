@@ -122,4 +122,29 @@ Compatibilité
 
 Fonctionne sous Linux, Mac, et Windows avec [Cygwin](http://cygwin.com/install.html) (penser à prendre les paquets ssh, mysql, rsync et ncurses... il vous faudra aussi pouvoir exécuter PHP en ligne de commande dans cygwin).
 
+Aide à la configuration pour une installation type Windows + Xampp + Cygwin
+===
+
+Finaliser l'installation de cygwin pour notre besoin :
+
+Dans `~/.my.cnf`
+```ini
+[client]
+host=127.0.0.1
+user=root
+pass=
+```
+
+Dans `~/.bash_profile`
+```bash
+export PATH=$PATH:/cygdrive/c/xampp/mysql/bin:/cygdrive/c/xampp/php
+```
+
+```bash
+source ~/.bash_profile
+ssh-keygen -A
+```
+
+
+
 ***Remarque*** : `sitesync` embarque déjà dans son dossier ```/bin``` l'outil [resilient_replace](https://github.com/pa-de-solminihac/resilient_replace) pour faire des chercher-remplacer sans casser les données sérialisées.
