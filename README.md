@@ -132,7 +132,7 @@ Dans `~/.my.cnf`
 [client]
 host=127.0.0.1
 user=root
-pass=
+password=
 ```
 
 Dans `~/.bash_profile`
