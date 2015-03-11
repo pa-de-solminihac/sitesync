@@ -149,6 +149,8 @@ Dans `~/.bash_profile`, afin de pouvoir utiliser `php` et `mysql` depuis la lign
 export PATH=$PATH:/cygdrive/c/xampp/mysql/bin:/cygdrive/c/xampp/php
 ```
 
+Et pour finir, lancer :
+
 ```bash
 ssh-keygen -A
 source ~/.bash_profile
