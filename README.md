@@ -4,14 +4,14 @@ Sitesync
 ***Synchronise un site local avec un site distant.***
 
 Installation
----
+===
 
 ```bash
 git clone https://github.com/pa-de-solminihac/sitesync
 ```
 
 Configuration basique
----
+===
 
 L'outil a besoin d'un fichier de configuration pour fonctionner. On peut se baser sur le fichier `config-sample` fourni :
 ```bash
@@ -29,7 +29,7 @@ Vous pouvez ajouter des scripts à appliquer avant / après l'import de la base 
 __Important__ : il faut renommer les scripts hook en leur donnant l'extension `.sh` pour qu'ils soient pris en compte !
 
 Utilisation
----
+===
 
 Une fois la configuration effectuées, il suffit de lancer le script sync :
 
@@ -63,7 +63,7 @@ eval "$(ssh-agent)"
 ```
 
 Configuration avancée
----
+===
 
 Configuration des chercher-remplacer : 
 ```ini
@@ -110,7 +110,7 @@ rsync_options="-uvrpz --exclude /sitesync/ --exclude /stats/ --exclude .git/ --e
 ```
 
 Fonctionnement
----
+===
 
 * Le script ```./sync``` se connecte en SSH au serveur distant et fait un dump de la base de données (compressé à la volée, téléchargé puis décompressé à la volée).
 * Il fait ensuite les chercher remplacer classiques dans le dump ainsi récupéré (typiquement : WWW_ROOT et FILES_ROOT) pour adapter la base de données à l'hébergement local. Le chercher remplacer gère correctement les données sérialisées.
@@ -118,12 +118,12 @@ Fonctionnement
 * Enfin, le script importe la base de données ainsi mise à jour.
 
 Compatibilité
----
+===
 
 Fonctionne sous Linux, Mac, et Windows avec [Cygwin](http://cygwin.com/install.html) (penser à prendre les paquets ssh, mysql, rsync et ncurses... il vous faudra aussi pouvoir exécuter PHP en ligne de commande dans cygwin).
 
 Aide à la configuration pour une installation type Windows + Xampp + Cygwin
-===
+---
 
 Finaliser l'installation de cygwin pour notre besoin :
 
@@ -144,7 +144,5 @@ export PATH=$PATH:/cygdrive/c/xampp/mysql/bin:/cygdrive/c/xampp/php
 source ~/.bash_profile
 ssh-keygen -A
 ```
-
-
 
 ***Remarque*** : `sitesync` embarque déjà dans son dossier ```/bin``` l'outil [resilient_replace](https://github.com/pa-de-solminihac/resilient_replace) pour faire des chercher-remplacer sans casser les données sérialisées.
