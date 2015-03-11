@@ -112,10 +112,12 @@ rsync_options="-uvrpz --exclude /sitesync/ --exclude /stats/ --exclude .git/ --e
 Fonctionnement
 ===
 
-* Le script ```./sync``` se connecte en SSH au serveur distant et fait un dump de la base de données (compressé à la volée, téléchargé puis décompressé à la volée).
-* Il fait ensuite les chercher remplacer classiques dans le dump ainsi récupéré (typiquement : WWW_ROOT et FILES_ROOT) pour adapter la base de données à l'hébergement local. Le chercher remplacer gère correctement les données sérialisées.
-* S'il est configuré pour, le script appliquera des adaptations personnalisées avant/après l'import. Il pourra ainsi synchroniser également les fichiers.
-* Enfin, le script importe la base de données ainsi mise à jour.
+* Le script ```./sync``` se connecte en SSH au serveur distant et fait un dump de la base de données, puis le rappatrie en local. Il est compressé pour le transfert (comportement par défaut).
+* Le script fait ensuite les chercher remplacer classiques dans le dump ainsi récupéré (typiquement : WWW_ROOT et FILES_ROOT). Le chercher remplacer gère correctement les données sérialisées.
+* Optionnellement, le script pourra appliquer des adaptations personnalisées avant l'import.
+* Le script importe le dump obtenu.
+* Le script synchronise les fichiers.
+* Optionnellement, le script pourra appliquer des adaptations personnalisées avant l'import.
 
 Compatibilité
 ===
