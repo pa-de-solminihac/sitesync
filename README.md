@@ -122,14 +122,21 @@ Fonctionnement
 Compatibilité
 ===
 
-Fonctionne sous Linux, Mac, et Windows avec [Cygwin](http://cygwin.com/install.html) (penser à prendre les paquets ssh, mysql, rsync et ncurses... il vous faudra aussi pouvoir exécuter PHP en ligne de commande dans cygwin).
+Fonctionne sous Linux, Mac, et Windows avec [Cygwin](http://cygwin.com/install.html).
 
 Aide à la configuration pour une installation type Windows + Xampp + Cygwin
 ---
 
-Finaliser l'installation de cygwin pour notre besoin :
+Lors de l'installation de [Cygwin](http://cygwin.com/install.html), installer les paquets suivants : 
+- Database/mysql
+- Net/openssh
+- Net/rsync
+- Utils/ncurses
+- Devel/git (optionnel)
 
-Dans `~/.my.cnf`
+Finaliser l'installation de cygwin pour notre besoin.
+
+Dans `~/.my.cnf` la config correspondant à l'installation de Xampp, à adapter si vous l'avez modifiée :
 ```ini
 [client]
 host=127.0.0.1
@@ -137,14 +144,14 @@ user=root
 password=
 ```
 
-Dans `~/.bash_profile`
+Dans `~/.bash_profile`, afin de pouvoir utiliser `php` et `mysql` depuis la ligne de commande : 
 ```bash
 export PATH=$PATH:/cygdrive/c/xampp/mysql/bin:/cygdrive/c/xampp/php
 ```
 
 ```bash
-source ~/.bash_profile
 ssh-keygen -A
+source ~/.bash_profile
 ```
 
 Pour Xampp, afin que l'import du dump SQL se déroule bien, il peut être nécessaire de modifier la configuration de mysql (fichier `my.ini`, section `[mysqld]`) : 
