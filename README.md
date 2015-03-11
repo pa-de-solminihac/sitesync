@@ -150,6 +150,7 @@ innodb_buffer_pool_size = 32M
 max_allowed_packet = 32M
 innodb_log_file_size = 32M
 ```
+Pensez à relancer MySQL après avoir fait ces modifications.
 
 Dans `~/.bash_profile`, afin de pouvoir utiliser `php` et `mysql` depuis la ligne de commande : 
 ```bash
