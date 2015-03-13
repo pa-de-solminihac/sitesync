@@ -3,6 +3,13 @@ Sitesync
 
 ***Synchronise un site local avec un site distant.***
 
+* Le script ```./sync``` se connecte en SSH au serveur distant et **fait un dump de la base de données**, puis le rappatrie en local. Il est compressé pour le transfert (comportement par défaut).
+* Le script fait ensuite les **chercher remplacer** classiques dans le dump ainsi récupéré (typiquement : WWW_ROOT et FILES_ROOT). **Le chercher remplacer gère correctement les données sérialisées.**
+* Optionnellement, le script pourra appliquer des adaptations personnalisées avant l'import.
+* Le script **importe le dump obtenu**.
+* Le script **synchronise les fichiers**.
+* Optionnellement, le script pourra appliquer des adaptations personnalisées avant l'import.
+
 Installation
 ===
 
@@ -10,7 +17,16 @@ Installation
 git clone https://github.com/pa-de-solminihac/sitesync
 ```
 
-Configuration basique
+Mise à jour
+===
+
+```bash
+git pull
+```
+
+Pensez à comparer le fichier `etc/config-sample` fourni avec votre fichier `etc/config` pour vérifier si vous devez mettre à jour ce dernier.
+
+Configuration
 ===
 
 L'outil a besoin d'un fichier de configuration pour fonctionner. On peut se baser sur le fichier `config-sample` fourni :
@@ -22,30 +38,6 @@ Il faut ensuite éditer le fichier `etc/config` pour l'adapter à notre besoin.
 
 ```bash
 vim etc/config
-```
-
-Vous pouvez ajouter des scripts à appliquer avant / après l'import de la base de données dans les dossiers `/hook/before` et `hook/after`. À titre d'exemple, des hooks pour Prestashop 1.6 sont présents. 
-
-__Important__ : il faut renommer les scripts hook en leur donnant l'extension `.sh` pour qu'ils soient pris en compte !
-
-Utilisation
-===
-
-Une fois la configuration effectuées, il suffit de lancer le script sync :
-
-```bash
-./sync
-```
-
-Pour ne synchroniser que les fichiers :
-
-```bash
-./sync files
-```
-
-Pour ne synchroniser que la base de données :
-```bash
-./sync sql
 ```
 
 ***Astuce***
@@ -60,6 +52,26 @@ Si votre clé SSH est protégée par mot de passe et que vous êtes déjà au se
 
 ```bash
 eval "$(ssh-agent)"
+```
+
+Utilisation
+===
+
+Une fois la configuration effectuée, il suffit de lancer le script sync, qui synchronisera la base de données, puis les fichiers :
+
+```bash
+./sync
+```
+
+Pour ne synchroniser que les fichiers :
+
+```bash
+./sync files
+```
+
+Pour ne synchroniser que la base de données :
+```bash
+./sync sql
 ```
 
 Configuration avancée
@@ -109,15 +121,12 @@ sql_options="--default-character-set=utf8"
 rsync_options="-uvrpz --exclude /sitesync/ --exclude /stats/ --exclude .git/ --exclude .svn/ --exclude .cvs/ "
 ```
 
-Fonctionnement
-===
+Hooks
+---
 
-* Le script ```./sync``` se connecte en SSH au serveur distant et fait un dump de la base de données, puis le rappatrie en local. Il est compressé pour le transfert (comportement par défaut).
-* Le script fait ensuite les chercher remplacer classiques dans le dump ainsi récupéré (typiquement : WWW_ROOT et FILES_ROOT). Le chercher remplacer gère correctement les données sérialisées.
-* Optionnellement, le script pourra appliquer des adaptations personnalisées avant l'import.
-* Le script importe le dump obtenu.
-* Le script synchronise les fichiers.
-* Optionnellement, le script pourra appliquer des adaptations personnalisées avant l'import.
+Vous pouvez ajouter des scripts à appliquer avant / après l'import de la base de données dans les dossiers `/hook/before` et `hook/after`. À titre d'exemple, des hooks pour Prestashop 1.6 sont présents. 
+
+__Important__ : il faut renommer les scripts hook en leur donnant l'extension `.sh` pour qu'ils soient pris en compte !
 
 Compatibilité
 ===
