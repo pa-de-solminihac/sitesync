@@ -159,18 +159,24 @@ innodb_buffer_pool_size = 32M
 max_allowed_packet = 32M
 innodb_log_file_size = 32M
 ```
-Pensez à relancer MySQL après avoir fait ces modifications.
+Pensez à relancer MySQL après avoir fait ces modifications. Sur certaines configuration, le changement du `my.ini` empêche MySQL de redémarrer. Il faut alors stopper MySQL, supprimer les fichiers `ib_logfile*` et `ibdata*`, puis relancer MySQL.
 
 Dans `~/.bash_profile`, afin de pouvoir utiliser `php` et `mysql` depuis la ligne de commande : 
 ```bash
 export PATH=$PATH:/cygdrive/c/xampp/mysql/bin:/cygdrive/c/xampp/php
 ```
 
-Et pour finir, lancer :
+On génère alors les clés SSH pour permettre la connexion sans mots de passe. Attention car `ssh-keygen -A` semble un peu capricieux s'il y a des accents dans votre nom d'utilisateur.
 
 ```bash
 ssh-keygen -A
-source ~/.bash_profile
 ```
 
-***Remarque*** : `sitesync` embarque déjà dans son dossier ```/bin``` l'outil [resilient_replace](https://github.com/pa-de-solminihac/resilient_replace) pour faire des chercher-remplacer sans casser les données sérialisées.
+Et pour finir, lancer :
+
+```bash
+source ~/.bash_profile
+```
+ 
+
+***Crédit*** : `sitesync` embarque déjà dans son dossier ```/bin``` l'outil [resilient_replace](https://github.com/pa-de-solminihac/resilient_replace) pour faire des chercher-remplacer sans casser les données sérialisées.
