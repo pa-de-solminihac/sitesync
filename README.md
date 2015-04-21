@@ -36,9 +36,7 @@ git clone https://github.com/pa-de-solminihac/sitesync
 git pull
 ```
 
-**Remarque**
-
-Pensez à comparer le fichier `etc/config-sample` fourni avec votre fichier `etc/config` pour vérifier si vous devez mettre à jour ce dernier.
+Lors d'une mise à jour, pensez à comparer le fichier `etc/config-sample` avec votre fichier `etc/config` pour vérifier si vous devez mettre à jour ce dernier.
 
 
 ## Configuration
