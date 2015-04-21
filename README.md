@@ -161,8 +161,8 @@ innodb_log_file_size = 32M
 ```
 Pensez à relancer MySQL après avoir fait ces modifications. 
 
-* * *
-
+> * * *
+> 
 > **Remarque**
 > 
 > Sur certaines configuration, le changement du `my.ini` empêche MySQL de redémarrer.
@@ -172,8 +172,7 @@ Pensez à relancer MySQL après avoir fait ces modifications.
 > - stopper MySQL, supprimer les fichiers `ib_logfile*` et `ibdata*`, puis relancer MySQL
 > - **réimporter le dump de toutes les bases**
 > 
-
-* * *
+> * * *
 
 Dans `~/.bash_profile`, afin de pouvoir utiliser `php` et `mysql` depuis la ligne de commande : 
 ```bash
