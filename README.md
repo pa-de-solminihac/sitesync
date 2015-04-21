@@ -1,33 +1,47 @@
-Sitesync
-===
+# Sitesync
 
-***Synchronise un site local avec un site distant.***
+**Synchronise un site local avec un site distant.**
 
-* Le script ```./sync``` se connecte en SSH au serveur distant et **fait un dump de la base de données**, puis le rappatrie en local. Il est compressé pour le transfert (comportement par défaut).
-* Le script fait ensuite les **chercher remplacer** classiques dans le dump ainsi récupéré (typiquement : WWW_ROOT et FILES_ROOT). **Le chercher remplacer gère correctement les données sérialisées.**
-* Optionnellement, le script pourra appliquer des adaptations personnalisées avant l'import.
-* Le script **importe le dump obtenu**.
+## Fonctionnement
+
+### Synchronisation de la base de données
+
+__Sitesync__ se connecte en SSH à un serveur et **fait un dump de la base de données**, puis le rappatrie en local. Par défaut, il est compressé à la volée pour réduire le temps de transfert.
+
+__Sitesync__ fait ensuite les **chercher remplacer** classiques dans le dump ainsi récupéré (typiquement : URL et chemin vers la racine du site).
+
+> **Remarque**
+> 
+> **Le chercher remplacer gère correctement les données sérialisées** grâce à [resilient_replace](https://github.com/pa-de-solminihac/resilient_replace)
+
+On peut ensuite appliquer un script d'adaptations personnalisées.
+
+Enfin, on **importe le dump obtenu**.
+
+### Synchronisation des fichiers
+
 * Le script **synchronise les fichiers**.
 * Optionnellement, le script pourra appliquer des adaptations personnalisées avant l'import.
 
-Installation
-===
+
+## Installation
 
 ```bash
 git clone https://github.com/pa-de-solminihac/sitesync
 ```
 
-Mise à jour
-===
+## Mise à jour
 
 ```bash
 git pull
 ```
 
+**Remarque**
+
 Pensez à comparer le fichier `etc/config-sample` fourni avec votre fichier `etc/config` pour vérifier si vous devez mettre à jour ce dernier.
 
-Configuration
-===
+
+## Configuration
 
 L'outil a besoin d'un fichier de configuration pour fonctionner. On peut se baser sur le fichier `config-sample` fourni :
 ```bash
@@ -40,7 +54,7 @@ Il faut ensuite éditer le fichier `etc/config` pour l'adapter à notre besoin.
 vim etc/config
 ```
 
-***Astuce***
+**Remarque**
 
 Pour ne pas avoir à saisir le mot de passe SSH à chaque fois, utiliser l'accès SSH par clés :
 
@@ -54,8 +68,7 @@ Si votre clé SSH est protégée par mot de passe et que vous êtes déjà au se
 eval "$(ssh-agent)"
 ```
 
-Utilisation
-===
+## Utilisation
 
 Une fois la configuration effectuée, il suffit de lancer le script sync, qui synchronisera la base de données, puis les fichiers :
 
@@ -74,8 +87,7 @@ Pour ne synchroniser que la base de données :
 ./sync sql
 ```
 
-Configuration avancée
-===
+## Configuration avancée
 
 Configuration des chercher-remplacer : 
 ```ini
@@ -104,37 +116,36 @@ On prendra le soin de préciser si le fichier est compressé :
 compress=1
 ```
 
-***Remarque***
+**Remarque**
 
 Si __src_type__ est `local_base` ou `remote_base`, le paramètre __compress__ prend un sens différent. Il indique si on souhaite activer ou non la compression à la volée.
 
-***Options la synchronisation SQL***
+**Options la synchronisation SQL**
 
 ```ini
 sql_ignores="--ignore-table=$src_dbname.table1 --ignore-table=$src_dbname.table2 "
 sql_options="--default-character-set=utf8"
 ```
 
-***Options pour la synchronisation des fichiers***
+**Options pour la synchronisation des fichiers**
 
 ```ini
 rsync_options="-uvrpz --exclude /sitesync/ --exclude /stats/ --exclude .git/ --exclude .svn/ --exclude .cvs/ "
 ```
 
-Hooks
----
+### Hooks
 
 Vous pouvez ajouter des scripts à appliquer avant / après l'import de la base de données dans les dossiers `/hook/before` et `hook/after`. À titre d'exemple, des hooks pour Prestashop 1.6 sont présents. 
 
-__Important__ : il faut renommer les scripts hook en leur donnant l'extension `.sh` pour qu'ils soient pris en compte !
+**Important**
 
-Compatibilité
-===
+Il faut renommer les scripts hook en leur donnant l'extension `.sh` pour qu'ils soient pris en compte !
+
+## Compatibilité
 
 Fonctionne sous Linux, Mac, et Windows avec [Cygwin](http://cygwin.com/install.html).
 
-Aide à la configuration pour une installation type Windows + Xampp + Cygwin
----
+### Aide à la configuration pour une installation type Windows + Xampp + Cygwin
 
 Lors de l'installation de [Cygwin](http://cygwin.com/install.html), installer les paquets suivants : 
 - Database/mysql
@@ -190,6 +201,3 @@ Et pour finir, lancer :
 ```bash
 source ~/.bash_profile
 ```
- 
-
-***Crédit*** : `sitesync` embarque déjà dans son dossier ```/bin``` l'outil [resilient_replace](https://github.com/pa-de-solminihac/resilient_replace) pour faire des chercher-remplacer sans casser les données sérialisées.
