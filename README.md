@@ -168,7 +168,7 @@ Pensez à relancer MySQL après avoir fait ces modifications.
 > Sur certaines configuration, le changement du `my.ini` empêche MySQL de redémarrer.
 > 
 > Il faut alors : 
-> - **faire un dump de toutes les bases** : `mysqldump -u root -p --all-databases --add-drop-database > all.sql`
+> - **faire un dump de toutes les bases** (sauf les tables système) : `mysqldump -u root -p --add-drop-database --databases $(echo "SHOW DATABASES;" | mysql -u root -p | grep -v '^\(Database\|mysql\|information_schema\|performance_schema\)$' | tr "\\n" " ") > all.sql`
 > - stopper MySQL, supprimer les fichiers `ib_logfile*` et `ibdata*`, puis relancer MySQL
 > - **réimporter le dump de toutes les bases** : `mysql -u root -p --show-warnings < all.sql > import_log` 
 > 
