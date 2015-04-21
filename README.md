@@ -159,7 +159,15 @@ innodb_buffer_pool_size = 32M
 max_allowed_packet = 32M
 innodb_log_file_size = 32M
 ```
-Pensez à relancer MySQL après avoir fait ces modifications. Sur certaines configuration, le changement du `my.ini` empêche MySQL de redémarrer. Il faut alors faire un dump de toutes les bases, stopper MySQL, supprimer les fichiers `ib_logfile*` et `ibdata*`, puis relancer MySQL. On pourra alors réimporter le dump de toutes les bases.
+Pensez à relancer MySQL après avoir fait ces modifications. 
+
+**Remarque**
+Sur certaines configuration, le changement du `my.ini` empêche MySQL de redémarrer.
+
+Il faut alors : 
+- **faire un dump de toutes les bases**
+- stopper MySQL, supprimer les fichiers `ib_logfile*` et `ibdata*`, puis relancer MySQL
+- **réimporter le dump de toutes les bases**
 
 Dans `~/.bash_profile`, afin de pouvoir utiliser `php` et `mysql` depuis la ligne de commande : 
 ```bash
