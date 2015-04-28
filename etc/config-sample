@@ -60,6 +60,7 @@ replace_src[4]="$src_site_host"
 replace_dst[4]="$dst_site_host"
 
 # Options de synchronisation
+resilient_replace_options=""            # additionnal options for resilient_replace
 src_type="remote_base"                  # ou faut il récupérer les données : local_file|local_base|remote_file|remote_base
 src_file="/path/to/dbname.sql.gz"       # si local_file ou remote_file, il faut le chemin vers le fichier
 compress=1                              # si src_type=local_base|remote_base : compression à la volée
