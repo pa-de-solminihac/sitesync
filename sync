@@ -208,14 +208,13 @@ then
     do
         replace_src_current_value=${replace_src["$k"]}
         replace_dst_current_value=${replace_dst["$k"]}
-        replace_src_escaped=`echo "${replace_src_current_value}" | sed 's/\//\\\\\//g'`
         MSG4="`expr 1 + \"$k\"`"
         MSG5=": \"${replace_src_current_value}\" => \"${replace_dst_current_value}\" "
         printf "\r`tput el`"                            # affichage uniquement
         echo >> $logfile                                # log uniquement
         echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement
         printf "$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4" | tee -a $logfile
-        $dst_path_to_php $dst_path_to_resilient_replace -i "$replace_src_escaped" "$replace_dst_current_value" $sqlfile_relative
+        $dst_path_to_php $dst_path_to_resilient_replace -i ${replace_src_current_value} "$replace_dst_current_value" $sqlfile_relative
     done
     printf "\r`tput el`" # affichage uniquement
     echo >> $logfile     # log uniquement
