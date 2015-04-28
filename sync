@@ -23,7 +23,7 @@ then
 else
     if [[ ( $# -gt 0 ) ]];
     then
-        echo "Usage: $0 [files|dir]"
+        echo "Usage: $0 [files|sql]"
         exit
     fi
 fi
@@ -42,7 +42,7 @@ then
             if [ "$src_file_extension" == "gz" ];
             then
                 DO_GZIP="cat"
-                DO_GUNZIP="zcat"
+                DO_GUNZIP="gunzip -c"
             elif [ "$src_file_extension" == "7z" ];
             then
                 DO_GZIP="cat"
