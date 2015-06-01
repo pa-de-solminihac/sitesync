@@ -1,4 +1,4 @@
-#!/usr/bin/env php
+#!/usr/bin/env php -qn
 <?php
 // be quiet, dont mess everything
 ini_set('error_reporting', E_ALL);
@@ -57,6 +57,7 @@ $search  = $argv[1];
 if (!$use_regex) {
     $search = preg_quote($search);
 }
+$search = str_replace('/', '\/', $search);
 $replace = $argv[2];
 $content_from_stdin = 0;
 $filename = '';
