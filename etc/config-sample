@@ -77,7 +77,7 @@ src_path_to_mysqldump=mysqldump
 dst_path_to_mysqldump=mysqldump
 dst_path_to_mysql=mysql
 dst_path_to_rsync=rsync
-dst_path_to_php=php
+dst_path_to_php="env php -qn"
 dst_path_to_resilient_replace="$path_to_sitesync/bin/resilient_replace"
 logfile="$path_to_sitesync/log/sitesync.log"
 
