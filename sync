@@ -214,7 +214,7 @@ then
         echo >> $logfile                                # log uniquement
         echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement
         printf "$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4" | tee -a $logfile
-        $dst_path_to_php $dst_path_to_resilient_replace -i ${replace_src_current_value} "$replace_dst_current_value" $sqlfile_relative
+        $dst_path_to_php $dst_path_to_resilient_replace -i $resilient_replace_options "${replace_src_current_value}" "$replace_dst_current_value" $sqlfile_relative
     done
     printf "\r`tput el`" # affichage uniquement
     echo >> $logfile     # log uniquement
