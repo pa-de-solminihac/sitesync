@@ -152,6 +152,7 @@ Lors de l'installation de [Cygwin](http://cygwin.com/install.html), installer le
 - Utils/ncurses
 - Devel/git (optionnel)
 - Editors/vim (optionnel)
+- Web/wget (optionnel)
 
 Finaliser l'installation de cygwin pour notre besoin.
 
