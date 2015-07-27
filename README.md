@@ -151,6 +151,7 @@ Lors de l'installation de [Cygwin](http://cygwin.com/install.html), installer le
 - Net/rsync
 - Utils/ncurses
 - Devel/git (optionnel)
+- Editors/vim (optionnel)
 
 Finaliser l'installation de cygwin pour notre besoin.
 
