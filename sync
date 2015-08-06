@@ -70,16 +70,16 @@ arg_src_dbpass=""
 case "$src_type" in
     "remote_base" | "local_base")
         if [ -n "$src_hostname" ]; then
-            arg_src_hostname=" -h $src_hostname "
+            arg_src_hostname=" -h '${src_hostname/\'/\'\\\'\'}' "
         fi
         if [ -n "$src_port" ]; then
-            arg_src_port=" -P $src_port "
+            arg_src_port=" -P '${src_port/\'/\'\\\'\'}' "
         fi
         if [ -n "$src_dbuser" ]; then
-            arg_src_dbuser=" -u $src_dbuser "
+            arg_src_dbuser=" -u '${src_dbuser/\'/\'\\\'\'}' "
         fi
         if [ -n "$src_dbpass" ]; then
-            arg_src_dbpass=" -p$src_dbpass "
+            arg_src_dbpass=" -p'${src_dbpass/\'/\'\\\'\'}' "
         fi
         ;;
 esac
@@ -91,16 +91,16 @@ arg_dst_port=""
 arg_dst_dbuser=""
 arg_dst_dbpass=""
 if [ -n "$dst_hostname" ]; then
-    arg_dst_hostname=" -h $dst_hostname "
+    arg_dst_hostname=" -h '${dst_hostname/\'/\'\\\'\'}' "
 fi
 if [ -n "$dst_port" ]; then
-    arg_dst_port=" -P $dst_port "
+    arg_dst_port=" -P '${dst_port/\'/\'\\\'\'}' "
 fi
 if [ -n "$dst_dbuser" ]; then
-    arg_dst_dbuser=" -u $dst_dbuser "
+    arg_dst_dbuser=" -u '${dst_dbuser/\'/\'\\\'\'}' "
 fi
 if [ -n "$dst_dbpass" ]; then
-    arg_dst_dbpass=" -p$dst_dbpass "
+    arg_dst_dbpass=" -p'${dst_dbpass/\'/\'\\\'\'}' "
 fi
 arg_connexion_dst="$arg_dst_hostname$arg_dst_port$arg_dst_dbuser$arg_dst_dbpass"
 
@@ -262,7 +262,7 @@ echo -n "$MSG" | tee -a $logfile
 if [ "$skip_sql" == "0" ];
 then
     cat $sqlfile | \
-        $dst_path_to_mysql $arg_connexion_dst $dst_dbname --show-warnings >> $logfile && \
+        eval "$dst_path_to_mysql $arg_connexion_dst $dst_dbname --show-warnings" >> $logfile && \
         mv -f $sqlfile $sqlfile_backup && \
         let COL=70-${#MSG} && \
         printf "%${COL}s\n" "OK" | tee -a $logfile
