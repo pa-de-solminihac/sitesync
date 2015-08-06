@@ -143,6 +143,16 @@ then
     exit
 fi
 
+# copie la clé SSH pour ne pas avoir à saisir le mot de passe plusieurs fois
+case "$src_type" in
+    "remote_file")
+        ssh-copy-id -o ControlMaster=yes -p $src_ssh_port $src_unixuser@$src_server 2>/dev/null
+        ;;
+    "remote_base")
+        ssh-copy-id -o ControlMaster=yes -p $src_ssh_port $src_unixuser@$src_server 2>/dev/null
+        ;;
+esac
+
 if [ "$skip_sql" == "0" ];
 then
     # backup distant ou local
