@@ -76,30 +76,30 @@ eval "$(ssh-agent)"
 Une fois la configuration effectuée, il suffit de lancer le script sync, qui synchronisera la base de données, puis les fichiers :
 
 ```bash
-./sync
+./sitesync
 ```
 
 Pour ne synchroniser que les fichiers :
 
 ```bash
-./sync files
+./sitesync files
 ```
 
 Pour ne synchroniser que la base de données :
 ```bash
-./sync sql
+./sitesync sql
 ```
 
 On peut utiliser sitesync avec plusieurs fichiers de configuration différents, grâce au paramètre `--conf=` :
 
 ``bash
-./sync --conf="etc/config-site1"
+./sitesync --conf="etc/config-site1"
 ```
 
 Pour en savoir plus :
 
 ```bash
-./sync --help
+./sitesync --help
 ```
 
 
