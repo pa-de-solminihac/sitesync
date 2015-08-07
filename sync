@@ -7,30 +7,78 @@ declare -a replace_dst
 declare -a sync_src
 declare -a sync_dst
 
-# options CLI
+# valeurs par défaut
 skip_sql=0
 skip_files=0
-if [[ ( $# -lt 2 ) && (( "$1" == "sql" ) || ( "$1" == "files" )) ]];
-then 
-    if [ "$1" == "sql" ];
-    then
-        skip_files=1
-    fi
-    if [ "$1" == "files" ];
-    then
-        skip_sql=1
-    fi
-else
-    if [[ ( $# -gt 0 ) ]];
-    then
-        echo "Usage: $0 [files|sql]"
-        exit
-    fi
-fi
-
 path_to_sitesync="$(dirname "$0")"
 source $path_to_sitesync/inc/config-base
-source $path_to_sitesync/etc/config
+
+# allowed parameters
+OPT_CONF="--conf"
+OPT_SQL="sql"
+OPT_FILES="files"
+
+# usage
+function usage() {
+    cat <<EOF
+
+    Synchronise un site local avec un site distant.
+
+    Usage
+    =====
+
+        $(basename $0) [--conf="etc/config"] [sql | files]
+
+    Options
+    =======
+
+        $OPT_CONF="etc/config"
+            Chemin vers le fichier de configuration à utiliser.
+            Par défaut : etc/config
+
+        $OPT_SQL | $OPT_FILES
+            Ne synchroniser que la base de données, ou que les fichiers.
+            Par défaut : synchroniser la base de données et les fichiers.
+EOF
+}
+
+# parse parameters
+while [ $# -ne 0 ]
+do
+    case "$1" in
+        $OPT_CONF=*)
+            OPT_CONF_SIZE="${#OPT_CONF}"
+            CONF="${1:$OPT_CONF_SIZE+1}"
+            ;;
+        $OPT_SQL)
+            skip_files=1
+            ;;
+        $OPT_FILES)
+            skip_sql=1
+            ;;
+        -h|--help|*)
+            usage
+            exit
+            ;;
+    esac
+    shift
+done
+
+# chargement du fichier de config
+if [ "$CONF" != "" ]; then
+    if [ "${CONF:0:1}" == "/" ]; then
+        if [ ! -f "$CONF" ]; then
+            echo "Erreur : fichier de configuration non trouvé"
+            exit
+        else
+            source $CONF
+        fi
+    else
+        source $path_to_sitesync/$CONF
+    fi
+else
+    source $path_to_sitesync/etc/config
+fi
 
 # activation compression, selon le type de source (gzip supporté globalement, 7z uniquement en remote_file ou local_file) a cause des ses limitations
 src_file_extension=""
