@@ -2,7 +2,9 @@
 
 **Synchronise un site local avec un site distant.**
 
+
 ## Fonctionnement
+
 
 ### Synchronisation de la base de données
 
@@ -18,6 +20,7 @@ On peut ensuite appliquer un script d'adaptations personnalisées.
 
 Enfin, on **importe le dump obtenu**.
 
+
 ### Synchronisation des fichiers
 
 * Le script **synchronise les fichiers**.
@@ -29,6 +32,7 @@ Enfin, on **importe le dump obtenu**.
 ```bash
 git clone https://github.com/pa-de-solminihac/sitesync
 ```
+
 
 ## Mise à jour
 
@@ -66,6 +70,7 @@ Si votre clé SSH est protégée par mot de passe et que vous êtes déjà au se
 eval "$(ssh-agent)"
 ```
 
+
 ## Utilisation
 
 Une fois la configuration effectuée, il suffit de lancer le script sync, qui synchronisera la base de données, puis les fichiers :
@@ -84,6 +89,19 @@ Pour ne synchroniser que la base de données :
 ```bash
 ./sync sql
 ```
+
+On peut utiliser sitesync avec plusieurs fichiers de configuration différents, grâce au paramètre `--conf=` :
+
+``bash
+./sync --conf="etc/config-site1"
+```
+
+Pour en savoir plus :
+
+```bash
+./sync --help
+```
+
 
 ## Configuration avancée
 
@@ -131,6 +149,7 @@ sql_options="--default-character-set=utf8"
 rsync_options="-uvrpz --exclude /sitesync/ --exclude /stats/ --exclude .git/ --exclude .svn/ --exclude .cvs/ "
 ```
 
+
 ### Hooks
 
 Vous pouvez ajouter des scripts à appliquer avant / après l'import de la base de données dans les dossiers `/hook/before` et `hook/after`. À titre d'exemple, des hooks pour Prestashop 1.6 sont présents. 
@@ -139,9 +158,11 @@ Vous pouvez ajouter des scripts à appliquer avant / après l'import de la base 
 
 Il faut renommer les scripts hook en leur donnant l'extension `.sh` pour qu'ils soient pris en compte !
 
+
 ## Compatibilité
 
 Fonctionne sous Linux, Mac, et Windows avec [Cygwin](http://cygwin.com/install.html).
+
 
 ### Aide à la configuration pour une installation type Windows + Xampp + Cygwin
 
