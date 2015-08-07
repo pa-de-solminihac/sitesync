@@ -40,14 +40,14 @@ git clone https://github.com/pa-de-solminihac/sitesync
 git pull
 ```
 
-Lors d'une mise à jour, pensez à comparer le fichier `etc/config-sample` avec votre fichier `etc/config` pour vérifier si vous devez mettre à jour ce dernier.
+Lors d'une mise à jour, pensez à comparer le fichier `sample/config` avec votre fichier `etc/config` pour vérifier si vous devez mettre à jour ce dernier.
 
 
 ## Configuration
 
-L'outil a besoin d'un fichier de configuration pour fonctionner. On peut se baser sur le fichier `config-sample` fourni :
+L'outil a besoin d'un fichier de configuration pour fonctionner. On peut se baser sur le fichier `sample/config` fourni :
 ```bash
-cp etc/config-sample etc/config
+cp sample/config etc/config
 ```
 
 Il faut ensuite éditer le fichier `etc/config` pour l'adapter à notre besoin.
