@@ -77,7 +77,12 @@ if [ "$CONF" != "" ]; then
         source $path_to_sitesync/$CONF
     fi
 else
-    source $path_to_sitesync/etc/config
+    if [ ! -f "$path_to_sitesync/etc/config" ]; then
+        echo "Erreur : fichier de configuration non trouvé"
+        exit
+    else
+        source $path_to_sitesync/etc/config
+    fi
 fi
 
 # activation compression, selon le type de source (gzip supporté globalement, 7z uniquement en remote_file ou local_file) a cause des ses limitations
