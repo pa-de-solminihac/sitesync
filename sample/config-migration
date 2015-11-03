@@ -13,13 +13,13 @@ dst_dbname="$src_unixuser"
 dst_site_host="$src_site_host"
 dst_files_root="/home/$src_unixuser/www";
 
-# Synchronisation des fichiers : chemins locaux et distants
-sync_src[0]="$src_files_root"
-sync_dst[0]="$dst_files_root"
-
 ########################
 # ADVANCED CONFIGURATION
 ########################
+
+# copy source files into destination
+sync_src[0]="$src_files_root"
+sync_dst[0]="$dst_files_root"
 
 # Source hosting (remote server)
 src_site_protocol="http://"
