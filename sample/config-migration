@@ -18,8 +18,8 @@ dst_files_root="/home/$src_unixuser/www";
 ########################
 
 # copy source files into destination
-sync_src[0]="$src_files_root"
-sync_dst[0]="$dst_files_root"
+sync_src+=("$src_files_root")
+sync_dst+=("$dst_files_root")
 
 # Source hosting (remote server)
 src_site_protocol="http://"
@@ -32,7 +32,7 @@ src_dbuser=""
 src_dbpass=""
 
 # Destination hosting (local server)
-dst_site_protocol="http://"
+dst_site_protocol="$src_site_protocol"
 dst_root_slug=""
 dst_hostname="127.0.0.1"
 dst_port=""
@@ -40,22 +40,22 @@ dst_dbuser=""
 dst_dbpass=""
 
 # replace source URL with remote one in database
-replace_src[0]="${src_site_protocol}www.${src_site_host}${src_root_slug}"
-replace_dst[0]="${dst_site_protocol}${dst_site_host}${dst_root_slug}"
+replace_src+=("${src_site_protocol}www.${src_site_host}${src_root_slug}")
+replace_dst+=("${dst_site_protocol}${dst_site_host}${dst_root_slug}")
 
-replace_src[1]="${src_site_protocol}${src_site_host}${src_root_slug}"
-replace_dst[1]="${dst_site_protocol}${dst_site_host}${dst_root_slug}"
+replace_src+=("${src_site_protocol}${src_site_host}${src_root_slug}")
+replace_dst+=("${dst_site_protocol}${dst_site_host}${dst_root_slug}")
 
 # replace source PATH with remote one in database
-replace_src[2]="$src_files_root"
-replace_dst[2]="$dst_files_root"
+replace_src+=("$src_files_root")
+replace_dst+=("$dst_files_root")
 
 # replace source HOSTNAME with remote one in database
-replace_src[3]="www.$src_site_host"
-replace_dst[3]="$dst_site_host"
+replace_src+=("www.$src_site_host")
+replace_dst+=("$dst_site_host")
 
-replace_src[4]="$src_site_host"
-replace_dst[4]="$dst_site_host"
+replace_src+=("$src_site_host")
+replace_dst+=("$dst_site_host")
 
 # sync options
 resilient_replace_options=""            # additionnal options for resilient_replace
