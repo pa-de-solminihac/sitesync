@@ -1,0 +1,34 @@
+#/bin/bash
+MSG=" + Drupal 7 (empty caches)";
+echo -n "$MSG"
+
+# empty drupal caches
+SQL_EMPTY_CACHES="
+TRUNCATE \`cache\`;
+TRUNCATE \`cache_admin_menu\`;
+TRUNCATE \`cache_block\`;
+TRUNCATE \`cache_bootstrap\`;
+TRUNCATE \`cache_field\`;
+TRUNCATE \`cache_filter\`;
+TRUNCATE \`cache_form\`;
+TRUNCATE \`cache_image\`;
+TRUNCATE \`cache_l10n_update\`;
+TRUNCATE \`cache_libraries\`;
+TRUNCATE \`cache_location\`;
+TRUNCATE \`cache_menu\`;
+TRUNCATE \`cache_metatag\`;
+TRUNCATE \`cache_page\`;
+TRUNCATE \`cache_panels\`;
+TRUNCATE \`cache_path\`;
+TRUNCATE \`cache_rules\`;
+TRUNCATE \`cache_token\`;
+TRUNCATE \`cache_update\`;
+TRUNCATE \`cache_views\`;
+TRUNCATE \`cache_views_data\`;
+"
+
+echo "$SQL_EMPTY_CACHES" >> $sqlfile;
+
+# affichage OK
+let COL=70-${#MSG}
+printf "%${COL}s\n" "OK"
