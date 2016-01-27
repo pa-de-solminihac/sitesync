@@ -232,7 +232,7 @@ then
             MSG="1/6 : dump de la base (distante)";
             printf "\r`tput el`%s" "$MSG" | tee -a $logfile
             echo "DROP DATABASE IF EXISTS \`$dst_dbname\`; CREATE DATABASE \`$dst_dbname\`; USE \`$dst_dbname\`; " > $sqlfile_tmp && \
-                ssh -p $src_ssh_port $src_unixuser@$src_server "($src_path_to_mysqldump --opt --no-data --no-create-db $sql_options $arg_connexion_src $src_dbname && $src_path_to_mysqldump --opt --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $DO_GZIP" | $DO_GUNZIP \
+                ssh -p $src_ssh_port $src_unixuser@$src_server "($src_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $src_path_to_mysqldump --opt --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $DO_GZIP" | $DO_GUNZIP \
                 >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
             RECUP_KO=$?
             ;;
@@ -240,7 +240,7 @@ then
             MSG="1/6 : dump de la base (locale)";
             printf "\r`tput el`%s" "$MSG" | tee -a $logfile
             echo "DROP DATABASE IF EXISTS \`$dst_dbname\`; CREATE DATABASE \`$dst_dbname\`; USE \`$dst_dbname\`; " > $sqlfile_tmp && \
-                ($dst_path_to_mysqldump --opt --no-data --no-create-db $sql_options $arg_connexion_src $src_dbname && $dst_path_to_mysqldump --opt --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname) \
+                ($dst_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $dst_path_to_mysqldump --opt --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname) \
                 >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
             RECUP_KO=$?
             ;;
@@ -353,6 +353,7 @@ then
         echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement
         printf "$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4" | tee -a $logfile
         $dst_path_to_rsync $rsync_options -e "ssh -p $src_ssh_port" $src_unixuser@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile 2>&1
+        # TODO: display progress indicator, using for example "lsof -ad3-999 -c rsync | grep -v '^COMMAND \| unix .* socket$'"
     done
     printf "\r`tput el`$MSG1 %3d $MSG3  OK" "$MSG2" | tee -a $logfile
     echo | tee -a $logfile

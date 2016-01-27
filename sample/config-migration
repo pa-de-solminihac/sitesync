@@ -68,7 +68,8 @@ compress=1                              # if $src_type is "local_base" or "remot
 sql_ignores="--ignore-table=$src_dbname.table_a_ignorer_1 --ignore-table=$src_dbname.table_a_ignorer_2"
 
 # mysqldump options
-sql_options="--default-character-set=utf8 --routines "
+sql_options_structure="--default-character-set=utf8 "
+sql_options="$sql_options_structure --routines "
 
 # transfer options, directories to ignore...
 rsync_options="-uvrpz --exclude /sitesync/ --exclude /stats/ --exclude .git/ --exclude .svn/ --exclude .cvs/ --exclude .DS_Store "

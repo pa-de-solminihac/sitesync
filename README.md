@@ -140,7 +140,8 @@ Si __src_type__ est `local_base` ou `remote_base`, le paramètre __compress__ pr
 
 ```ini
 sql_ignores="--ignore-table=$src_dbname.table1 --ignore-table=$src_dbname.table2 "
-sql_options="--default-character-set=utf8"
+sql_options_structure="--default-character-set=utf8"
+sql_options="$sql_options_structure --routines"
 ```
 
 **Options pour la synchronisation des fichiers**
