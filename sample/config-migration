@@ -34,7 +34,7 @@ src_dbpass=""
 # Destination hosting (local server)
 dst_site_protocol="$src_site_protocol"
 dst_root_slug=""
-dst_hostname="127.0.0.1"
+dst_hostname="localhost" # "127.0.0.1" sur certains hébergements
 dst_port=""
 dst_dbuser=""
 dst_dbpass=""
@@ -49,6 +49,11 @@ replace_dst+=("${dst_site_protocol}${dst_site_host}${dst_root_slug}")
 # replace source PATH with remote one in database
 replace_src+=("$src_files_root")
 replace_dst+=("$dst_files_root")
+
+# chercher-remplacer : procédures stockées (requiert de bien remplir les variables $src_dbuser, $src_hostname, $dst_dbuser et $dst_hostname)
+# sur certains hébergements, le chercher-remplacer marchera avec 'localhost' mais pas avec '127.0.0.1'
+replace_src+=(" DEFINER=\`$src_dbuser\`@\`$src_hostname\`*/ /*!")
+replace_dst+=(" DEFINER=\`$dst_dbuser\`@\`$dst_hostname\`*/ /*!")
 
 # replace source HOSTNAME with remote one in database
 replace_src+=("www.$src_site_host")
