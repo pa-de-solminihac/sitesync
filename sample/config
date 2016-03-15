@@ -1,84 +1,87 @@
-#######################
-# CONFIGURATION BASIQUE
-#######################
+#####################
+# BASIC CONFIGURATION
+#####################
 
-# site source
+# source hosting (remote server)
 src_site_protocol="http://"
 src_site_host="www.site.com"
 src_root_slug=""
 src_files_root="/remote/path/to/site/www";
 
-# site destination
+# destination hosting (local server)
 dst_site_protocol="http://"
 dst_site_host="local.site.com"
 dst_root_slug="/site"
 dst_files_root="/local/path/to/site";
 
-# connexion en ssh (au serveur source)
+# SSH connection to source hosting (remote server)
 src_server="$src_site_host"
 src_unixuser="username"
 src_ssh_port="22"
 
-# source (= serveur distant, vu depuis le serveur src_server)
+# source hosting (remote server)
 src_hostname="localhost"
 src_port=""
 src_dbname="dbname"
 src_dbuser="root"
 src_dbpass=""
 
-# Destination (= serveur local)
-dst_hostname="localhost" # "127.0.0.1" sur certains hébergements
+# destination hosting (local server)
+dst_hostname="localhost" # "127.0.0.1" sometimes
 dst_port=""
 dst_dbname="local_dbname"
 dst_dbuser="root"
 dst_dbpass=""
 
-# Synchronisation des fichiers : chemins locaux et distants
+# copy source files into destination
 sync_src+=("$src_files_root")
 sync_dst+=("$dst_files_root")
 
-#######################
-# CONFIGURATION AVANCEE
-#######################
+########################
+# ADVANCED CONFIGURATION
+########################
 
-# chercher-remplacer : URL locales et distantes
+# replace source URL with remote one in database
 replace_src+=("${src_site_protocol}www.${src_site_host}${src_root_slug}")
 replace_dst+=("${dst_site_protocol}${dst_site_host}${dst_root_slug}")
 
 replace_src+=("${src_site_protocol}${src_site_host}${src_root_slug}")
 replace_dst+=("${dst_site_protocol}${dst_site_host}${dst_root_slug}")
 
-# chercher-remplacer : chemins locaux et distants
+# replace source PATH with remote one in database
 replace_src+=("$src_files_root")
 replace_dst+=("$dst_files_root")
 
 # chercher-remplacer : procédures stockées (requiert de bien remplir les variables $src_dbuser, $src_hostname, $dst_dbuser et $dst_hostname)
 # sur certains hébergements, le chercher-remplacer marchera avec 'localhost' mais pas avec '127.0.0.1'
-replace_src+=(" DEFINER=\`$src_dbuser\`@\`$src_hostname\`*/ /*!")
-replace_dst+=(" DEFINER=\`$dst_dbuser\`@\`$dst_hostname\`*/ /*!")
+replace_src+=(" DEFINER=\`$src_dbuser\`@\`$src_hostname\`")
+replace_dst+=(" DEFINER=\`$dst_dbuser\`@\`$dst_hostname\`")
 
-# chercher-remplacer : hôtes locaux et distants
+# replace source HOSTNAME with remote one in database
 replace_src+=("www.$src_site_host")
 replace_dst+=("$dst_site_host")
 
 replace_src+=("$src_site_host")
 replace_dst+=("$dst_site_host")
 
-# Options de synchronisation
+# sync options
 resilient_replace_options=""            # additionnal options for resilient_replace
-src_type="remote_base"                  # ou faut il récupérer les données : local_file|local_base|remote_file|remote_base
-src_file="/path/to/dbname.sql.gz"       # si local_file ou remote_file, il faut le chemin vers le fichier
-compress=1                              # si src_type=local_base|remote_base : compression à la volée
-                                        # si src_type=local_file|remote_file, prise en charge des fichiers compressés
-# pour accélérer le processus, on peut ignorer le contenu de certaines tables
+src_type="remote_base"                  # get database from: local_file | local_base | remote_file | remote_base
+src_file="/path/to/dbname.sql.gz"       # if $src_type is a file ("local_file" or "remote_file") please provide the full path to the file
+compress=1                              # if $src_type is "local_base" or "remote_base", compress data on-the-fly
+                                        # if $src_type is "local_file" or "remote_file", handle compressed file
+
+# ignore database tables
 sql_ignores="--ignore-table=$src_dbname.table_a_ignorer_1 --ignore-table=$src_dbname.table_a_ignorer_2"
+
+# mysqldump options
 sql_options_structure="--default-character-set=utf8 "
 sql_options="$sql_options_structure --routines "
 
-# options de transfert et fichiers à ignorer
+# transfer options, directories to ignore...
 rsync_options="-uvrpz --exclude /sitesync/ --exclude /stats/ --exclude .git/ --exclude .svn/ --exclude .cvs/ --exclude .DS_Store "
 
-# Chemins vers les outils
+# path to tools
 src_path_to_mysqldump=mysqldump
 dst_path_to_mysqldump=mysqldump
 dst_path_to_mysql=mysql
@@ -87,7 +90,8 @@ dst_path_to_php="env php -qn"
 dst_path_to_resilient_replace="$path_to_sitesync/bin/resilient_replace"
 logfile="$path_to_sitesync/log/sitesync.log"
 
-# scripts personnalises a appliquer avant et apres import de la BD :
-# mettez ce que vous voulez dans ./hook/before/*.sh et ./hook/after/*.sh
+# you can run scripts before and after database import by putting them in:
+# ./hook/before/*.sh
+# ./hook/after/*.sh
 
 # vim: filetype=sh

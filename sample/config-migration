@@ -21,7 +21,7 @@ dst_files_root="/home/$src_unixuser/www";
 sync_src+=("$src_files_root")
 sync_dst+=("$dst_files_root")
 
-# Source hosting (remote server)
+# source hosting (remote server)
 src_site_protocol="http://"
 src_root_slug=""
 src_server="$src_site_host"
@@ -31,7 +31,7 @@ src_port=""
 src_dbuser=""
 src_dbpass=""
 
-# Destination hosting (local server)
+# destination hosting (local server)
 dst_site_protocol="$src_site_protocol"
 dst_root_slug=""
 dst_hostname="localhost" # "127.0.0.1" sur certains hébergements
@@ -52,8 +52,8 @@ replace_dst+=("$dst_files_root")
 
 # chercher-remplacer : procédures stockées (requiert de bien remplir les variables $src_dbuser, $src_hostname, $dst_dbuser et $dst_hostname)
 # sur certains hébergements, le chercher-remplacer marchera avec 'localhost' mais pas avec '127.0.0.1'
-replace_src+=(" DEFINER=\`$src_dbuser\`@\`$src_hostname\`*/ /*!")
-replace_dst+=(" DEFINER=\`$dst_dbuser\`@\`$dst_hostname\`*/ /*!")
+replace_src+=(" DEFINER=\`$src_dbuser\`@\`$src_hostname\`")
+replace_dst+=(" DEFINER=\`$dst_dbuser\`@\`$dst_hostname\`")
 
 # replace source HOSTNAME with remote one in database
 replace_src+=("www.$src_site_host")
