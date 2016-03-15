@@ -144,7 +144,11 @@ arg_dst_port=""
 arg_dst_dbuser=""
 arg_dst_dbpass=""
 if [ -n "$dst_hostname" ]; then
-    arg_dst_hostname=" -h '${dst_hostname/\'/\'\\\'\'}' "
+    if [ "$dst_hostname" == 'localhost' ]; then
+        arg_dst_hostname=" -h '127.0.0.1' "
+    else
+        arg_dst_hostname=" -h '${dst_hostname/\'/\'\\\'\'}' "
+    fi
 fi
 if [ -n "$dst_port" ]; then
     arg_dst_port=" -P '${dst_port/\'/\'\\\'\'}' "
