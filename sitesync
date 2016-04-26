@@ -1,5 +1,20 @@
 #!/usr/bin/env bash
 
+#set -e -o pipefail -o errtrace -o functrace
+#trap 'err_handler $?' ERR
+#
+#err_handler() {
+#    trap - ERR
+#    let i=0 exit_status=$1
+#    echo -ne "\033[0;31m"
+#    echo
+#    echo "Aborting on error $exit_status:"
+#    echo "--------------------"
+#    while caller $i; do ((++i)); done
+#    echo -ne "\033[0m"
+#    exit $?
+#}
+
 # TODO: chercher-remplacer basés sur des tableaux utilisables pour les URL, les chemins, les noms d'hôtes...
 # TODO: synchronisation de dossiers basée sur des tableaux
 declare -a replace_src
@@ -11,7 +26,8 @@ declare -a sync_dst
 skip_sql=0
 skip_files=0
 path_to_sitesync="$(dirname "$0")"
-source $path_to_sitesync/inc/config-base
+pushd $path_to_sitesync >/dev/null
+source inc/config-base
 
 # allowed parameters
 OPT_CONF="--conf"
@@ -74,14 +90,14 @@ if [ "$CONF" != "" ]; then
             source $CONF
         fi
     else
-        source $path_to_sitesync/$CONF
+        source $CONF
     fi
 else
-    if [ ! -f "$path_to_sitesync/etc/config" ]; then
+    if [ ! -f "etc/config" ]; then
         echo "Erreur : fichier de configuration non trouvé"
         exit
     else
-        source $path_to_sitesync/etc/config
+        source etc/config
     fi
 fi
 
@@ -164,9 +180,9 @@ arg_connexion_dst="$arg_dst_hostname$arg_dst_port$arg_dst_dbuser$arg_dst_dbpass"
 # echappement des variables : caracteres '.' et '/'
 curdate=`date +%Y%m%d%H%M%S`
 sqlfile_relative="tmp/$src_dbname$curdate.sql"
-sqlfile="$path_to_sitesync/$sqlfile_relative"
-sqlfile_tmp="$path_to_sitesync/tmp/$src_dbname.sql-tmp.$src_file_extension"
-sqlfile_backup="$path_to_sitesync/tmp/$src_dbname.sql"
+sqlfile="$sqlfile_relative"
+sqlfile_tmp="tmp/$src_dbname.sql-tmp.$src_file_extension"
+sqlfile_backup="tmp/$src_dbname.sql"
 
 echo "Lancement de la synchro" >> $logfile # RAZ du fichier log
 echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
@@ -190,13 +206,13 @@ fi
 
 #if [ "${#replace_src[@]}" != "${#replace_dst[@]}" ];
 #then
-    #echo "Incohérence dans les remplacements demandés, vérifiez les tableaux 'replace_src' et 'replace_dst' dans le fichier $path_to_sitesync/etc/config" | tee -a $logfile
+    #echo "Incohérence dans les remplacements demandés, vérifiez les tableaux 'replace_src' et 'replace_dst' dans le fichier etc/config" | tee -a $logfile
     #exit
 #fi
 
 if [ "${#sync_src[@]}" != "${#sync_dst[@]}" ];
 then
-    echo "Incohérence dans les synchronisations demandées, vérifiez les tableaux 'sync_src' et 'sync_dst' dans le fichier $path_to_sitesync/etc/config" | tee -a $logfile
+    echo "Incohérence dans les synchronisations demandées, vérifiez les tableaux 'sync_src' et 'sync_dst' dans le fichier etc/config" | tee -a $logfile
     exit
 fi
 
@@ -206,7 +222,7 @@ case "$src_type" in
         ssh-copy-id -o ControlMaster=yes -p $src_ssh_port $src_unixuser@$src_server 2>/dev/null
         ;;
     "remote_base")
-        ssh-copy-id -o ControlMaster=yes -p $src_ssh_port $src_unixuser@$src_server 2>/dev/null
+        ssh-copy-id -o ControlMaster=yes -p $src_ssh_port $src_unixuser@$src_server #2>/dev/null
         ;;
 esac
 
@@ -244,7 +260,7 @@ then
             MSG="1/6 : dump de la base (locale)";
             printf "\r`tput el`%s" "$MSG" | tee -a $logfile
             echo "DROP DATABASE IF EXISTS \`$dst_dbname\`; CREATE DATABASE \`$dst_dbname\`; USE \`$dst_dbname\`; " > $sqlfile_tmp && \
-                ($dst_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $dst_path_to_mysqldump --opt --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname) \
+                (sh -c "$dst_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $dst_path_to_mysqldump --opt --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname") \
                 >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
             RECUP_KO=$?
             ;;
@@ -302,13 +318,13 @@ if [ "$skip_sql" == "0" ];
 then
     # teste s'il y a des fichiers .sh
     shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
-    files=($path_to_sitesync/hook/before/*.sh);
+    files=(hook/before/*.sh);
     [ "$resetnullglob" ] && shopt -u nullglob
     # s'il y a des fichiers .sh
     if [ ${#files[@]} -gt 0 ];
     then
         echo | tee -a $logfile
-        for fich in $path_to_sitesync/hook/before/*.sh;
+        for fich in hook/before/*.sh;
         do
             echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
             source $fich;
@@ -374,13 +390,13 @@ if [ "$skip_files" == "0" ];
 then
     # teste s'il y a des fichiers .sh
     shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
-    files=($path_to_sitesync/hook/after/*.sh);
+    files=(hook/after/*.sh);
     [ "$resetnullglob" ] && shopt -u nullglob
     # s'il y a des fichiers .sh
     if [ ${#files[@]} -gt 0 ];
     then
         echo | tee -a $logfile
-        for fich in $path_to_sitesync/hook/after/*.sh;
+        for fich in hook/after/*.sh;
         do
             echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
             source $fich;
@@ -395,5 +411,7 @@ else
 fi
 
 echo "Fin de la synchro" >> $logfile
+
+popd >/dev/null
 
 # vim: filetype=sh

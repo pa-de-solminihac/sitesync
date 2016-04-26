@@ -3,8 +3,7 @@
 echo "work in progress"
 exit
 
-path_to_sitesync="$(dirname "$0")"
-source $path_to_sitesync/etc/config
+source etc/config
 
 # crée la table de suivi des mises à jour si nécessaire
 table_de_suivi_existe=$(echo "SHOW TABLES LIKE 'sitesync_upgrades';" | $dst_path_to_mysql -u $dst_dbuser $dst_dbname | grep '^sitesync_upgrades' | wc -l)
