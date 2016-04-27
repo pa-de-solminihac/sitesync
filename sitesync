@@ -222,7 +222,7 @@ case "$src_type" in
         ssh-copy-id -o ControlMaster=yes -p $src_ssh_port $src_unixuser@$src_server 2>/dev/null
         ;;
     "remote_base")
-        ssh-copy-id -o ControlMaster=yes -p $src_ssh_port $src_unixuser@$src_server #2>/dev/null
+        ssh-copy-id -o ControlMaster=yes -p $src_ssh_port $src_unixuser@$src_server 2>/dev/null
         ;;
 esac
 
@@ -413,5 +413,9 @@ fi
 echo "Fin de la synchro" >> $logfile
 
 popd >/dev/null
+
+
+# TODO: chercher remplacer dans les fichiers / afficher les fichiers qui matchent ?
+# find . -iname '*.php' -or -iname '*.tpl' -or -iname '*.twig' -or -iname '*.inc' -or -iname '*.ini' -or -iname '*.conf' -or -iname '*.ts' -exec grep "" {} \;
 
 # vim: filetype=sh
