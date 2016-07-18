@@ -92,7 +92,7 @@ Pour ne synchroniser que la base de données :
 
 On peut utiliser sitesync avec plusieurs fichiers de configuration différents, grâce au paramètre `--conf=` :
 
-``bash
+```bash
 ./sitesync --conf="etc/config-site1"
 ```
 
