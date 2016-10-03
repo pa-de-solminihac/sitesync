@@ -48,6 +48,13 @@ replace_dst+=("${dst_site_protocol}${dst_site_host}${dst_root_slug}")
 replace_src+=("${src_site_protocol}${src_site_host}${src_root_slug}")
 replace_dst+=("${dst_site_protocol}${dst_site_host}${dst_root_slug}")
 
+# Uncomment for servers not using utf8mb4
+# replace_src+=("utf8mb4_unicode_ci")
+# replace_dst+=("utf8_unicode_ci")
+
+# replace_src+=("CHARSET=utf8mb4")
+# replace_dst+=("CHARSET=utf8")
+
 # replace source PATH with remote one in database
 replace_src+=("$src_files_root")
 replace_dst+=("$dst_files_root")
