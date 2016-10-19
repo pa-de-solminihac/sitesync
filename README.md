@@ -1,30 +1,31 @@
-# Sitesync
+# sitesync
 
-**Synchronise un site local avec un site distant.**
+**Récupère ou synchronise un site en local à partir d'un site distant.**
 
 
-## Fonctionnement
-
+## Présentation
 
 ### Synchronisation de la base de données
 
-__Sitesync__ se connecte en SSH à un serveur et **fait un dump de la base de données**, puis le rappatrie en local. Par défaut, il est compressé à la volée pour réduire le temps de transfert.
+__sitesync__ se connecte en SSH à un serveur et **fait un dump de la base de données**, puis le récupère en local. Par défaut, il est compressé à la volée pour réduire le temps de transfert.
 
-__Sitesync__ fait ensuite les **chercher remplacer** classiques dans le dump ainsi récupéré (typiquement : URL et chemin vers la racine du site).
+__sitesync__ fait ensuite les **chercher-remplacer** classiques dans le dump ainsi récupéré (typiquement : URL et chemin vers la racine du site). Le dump obtenu sera alors utilisé pour *écraser* la base de données locale.
 
-> **Remarque**
-> 
-> **Le chercher remplacer gère correctement les données sérialisées** grâce à [resilient_replace](https://github.com/pa-de-solminihac/resilient_replace)
-
-On peut ensuite appliquer un script d'adaptations personnalisées.
-
-Enfin, on **importe le dump obtenu**.
+> **Le chercher-remplacer gère correctement les données sérialisées** grâce à [resilient_replace](https://github.com/pa-de-solminihac/resilient_replace)
 
 
 ### Synchronisation des fichiers
 
-* Le script **synchronise les fichiers**.
-* Optionnellement, le script pourra appliquer des adaptations personnalisées avant l'import.
+* __sitesync__ **synchronise les fichiers** grâce à _rsync_.
+
+Par défaut, il ne récupère que les fichiers modifiés 
+
+
+### Adaptations personnalisées (ou _hooks_)
+
+* Optionnellement, le script peut appliquer des adaptations personnalisées avant l'import de la base de données, ou après la synchronisation des fichiers. On utilise pour cela des scripts bash qu'on placera dans le dossier `etc/hook/before` ou `etc/hook/after`.
+
+> Des examples de _hooks_ sont disponibles dans le dossier `sample/hook`
 
 
 ## Installation
@@ -43,7 +44,9 @@ git pull
 Lors d'une mise à jour, pensez à comparer le fichier `sample/config` avec votre fichier `etc/config` pour vérifier si vous devez mettre à jour ce dernier.
 
 
-## Configuration
+## Configuration et utilisation
+
+### Configuration
 
 L'outil a besoin d'un fichier de configuration pour fonctionner. On peut se baser sur le fichier `sample/config` fourni :
 ```bash
@@ -71,7 +74,7 @@ eval "$(ssh-agent)"
 ```
 
 
-## Utilisation
+### Utilisation
 
 Une fois la configuration effectuée, il suffit de lancer le script sync, qui synchronisera la base de données, puis les fichiers :
 
@@ -90,11 +93,14 @@ Pour ne synchroniser que la base de données :
 ./sitesync sql
 ```
 
-On peut utiliser sitesync avec plusieurs fichiers de configuration différents, grâce au paramètre `--conf=` :
+On peut utiliser sitesync avec différentes configurations, grâce au paramètre `--conf=` :
 
 ```bash
 ./sitesync --conf="etc/config-site1"
 ```
+
+__sitesync__ utilisera alors le fichier de configuration `etc/config-site1/config`
+
 
 Pour en savoir plus :
 
@@ -103,18 +109,18 @@ Pour en savoir plus :
 ```
 
 
-## Configuration avancée
+### Configuration avancée
 
 Configuration des chercher-remplacer : 
 ```ini
-replace_src[0]="chaine à chercher numéro 0"
-replace_dst[0]="chaine qui remplace la chaine numéro 0"
+replace_src+=("chaine à chercher numéro 0")
+replace_dst+=("chaine qui remplace la chaine numéro 0")
 ```
 
 Configuration des dossiers à synchroniser :
 ```ini
-sync_src[0]="$src_files_root/files/media"
-sync_dst[0]="$dst_files_root/files/media"
+sync_src+=("$src_files_root/files/media")
+sync_dst+=("$dst_files_root/files/media")
 ```
 
 Options de synchronisation de la base de données :
@@ -136,7 +142,7 @@ compress=1
 
 Si __src_type__ est `local_base` ou `remote_base`, le paramètre __compress__ prend un sens différent. Il indique si on souhaite activer ou non la compression à la volée.
 
-**Options la synchronisation SQL**
+**Options pour la synchronisation SQL**
 
 ```ini
 sql_ignores="--ignore-table=$src_dbname.table1 --ignore-table=$src_dbname.table2 "
@@ -153,11 +159,7 @@ rsync_options="-uvrpz --exclude /sitesync/ --exclude /stats/ --exclude .git/ --e
 
 ### Hooks
 
-Vous pouvez ajouter des scripts à appliquer avant / après l'import de la base de données dans les dossiers `/hook/before` et `hook/after`. À titre d'exemple, des hooks pour Prestashop 1.6 sont présents. 
-
-**Important**
-
-Il faut renommer les scripts hook en leur donnant l'extension `.sh` pour qu'ils soient pris en compte !
+Vous pouvez ajouter des scripts à appliquer (avant  l'import de la base de données ou après la récupération des fichiers) dans les dossiers `etc/hook/before` et `etc/hook/after`. Des examples sont présents dans `sample/hook`
 
 
 ## Compatibilité
