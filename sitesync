@@ -43,14 +43,19 @@ function usage() {
     Usage
     =====
 
-        $(basename $0) [--conf="etc/config"] [sql | files]
+        $(basename $0) [$OPT_CONF=""] [sql | files]
 
     Options
     =======
 
-        $OPT_CONF="etc/config"
-            Chemin vers le fichier de configuration à utiliser.
-            Par défaut : etc/config
+        $OPT_CONF=""
+            Chemin vers le dossier (à l'intérieur du dossier "etc") contenant
+            la configuration à utiliser (fichier config et hooks).
+
+            Example : avec --conf="monsite", le fichier utilisé sera
+            "etc/monsite/config" et les hooks utilisés seront ceux de "etc/monsite/hook"
+
+            Par défaut : "", le fichier utilisé sera etc/config, les hooks seront cherchés dans "etc/hook"
 
         $OPT_SQL | $OPT_FILES
             Ne synchroniser que la base de données, ou que les fichiers.
@@ -81,24 +86,11 @@ do
 done
 
 # chargement du fichier de config
-if [ "$CONF" != "" ]; then
-    if [ "${CONF:0:1}" == "/" ]; then
-        if [ ! -f "$CONF" ]; then
-            echo "Erreur : fichier de configuration non trouvé"
-            exit
-        else
-            source $CONF
-        fi
-    else
-        source $CONF
-    fi
+if [ ! -f "etc/$CONF/config" ]; then
+    echo "Erreur : fichier de configuration non trouvé"
+    exit
 else
-    if [ ! -f "etc/config" ]; then
-        echo "Erreur : fichier de configuration non trouvé"
-        exit
-    else
-        source etc/config
-    fi
+    source "etc/$CONF/config"
 fi
 
 # activation compression, selon le type de source (gzip supporté globalement, 7z uniquement en remote_file ou local_file) a cause des ses limitations
@@ -212,7 +204,7 @@ fi
 
 if [ "${#sync_src[@]}" != "${#sync_dst[@]}" ];
 then
-    echo "Incohérence dans les synchronisations demandées, vérifiez les tableaux 'sync_src' et 'sync_dst' dans le fichier etc/config" | tee -a $logfile
+    echo "Incohérence dans les synchronisations demandées, vérifiez les tableaux 'sync_src' et 'sync_dst' dans le fichier etc/$CONF/config" | tee -a $logfile
     exit
 fi
 
@@ -310,7 +302,7 @@ else
 fi
 
 # adaptation spécifiques
-MSG="3/6 : adaptations avant import (fichiers hook/before/*.sh)";
+MSG="3/6 : adaptations avant import (fichiers etc/$CONF/hook/before/*.sh)";
 # applique les fichiers dans hook
 echo -n "$MSG" | tee -a $logfile
 
@@ -318,13 +310,13 @@ if [ "$skip_sql" == "0" ];
 then
     # teste s'il y a des fichiers .sh
     shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
-    files=(hook/before/*.sh);
+    files=(etc/$CONF/hook/before/*.sh);
     [ "$resetnullglob" ] && shopt -u nullglob
     # s'il y a des fichiers .sh
     if [ ${#files[@]} -gt 0 ];
     then
         echo | tee -a $logfile
-        for fich in hook/before/*.sh;
+        for fich in etc/$CONF/hook/before/*.sh;
         do
             echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
             source $fich;
@@ -383,20 +375,20 @@ else
     echo | tee -a $logfile
 fi
 
-MSG="6/6 : adaptations apres import (fichiers hook/after/*.sh)";
+MSG="6/6 : adaptations apres import (fichiers etc/$CONF/hook/after/*.sh)";
 # applique les fichiers dans hook
 echo -n "$MSG" | tee -a $logfile
 if [ "$skip_files" == "0" ];
 then
     # teste s'il y a des fichiers .sh
     shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
-    files=(hook/after/*.sh);
+    files=(etc/$CONF/hook/after/*.sh);
     [ "$resetnullglob" ] && shopt -u nullglob
     # s'il y a des fichiers .sh
     if [ ${#files[@]} -gt 0 ];
     then
         echo | tee -a $logfile
-        for fich in hook/after/*.sh;
+        for fich in etc/$CONF/hook/after/*.sh;
         do
             echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
             source $fich;
