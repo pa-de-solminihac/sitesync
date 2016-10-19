@@ -94,7 +94,7 @@ else
 fi
 
 # activation compression, selon le type de source (gzip supporté globalement, 7z uniquement en remote_file ou local_file) a cause des ses limitations
-src_file_extension=""
+src_file_extension="sql"
 if [ $compress -gt 0 ];
 then
     case "$src_type" in
@@ -173,7 +173,7 @@ arg_connexion_dst="$arg_dst_hostname$arg_dst_port$arg_dst_dbuser$arg_dst_dbpass"
 curdate=`date +%Y%m%d%H%M%S`
 sqlfile_relative="tmp/$src_dbname$curdate.sql"
 sqlfile="$sqlfile_relative"
-sqlfile_tmp="tmp/$src_dbname.sql-tmp.$src_file_extension"
+sqlfile_tmp="tmp/$src_dbname-tmp.$src_file_extension"
 sqlfile_backup="tmp/$src_dbname.sql"
 
 echo "Lancement de la synchro" >> $logfile # RAZ du fichier log
