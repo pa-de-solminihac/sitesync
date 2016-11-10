@@ -96,7 +96,7 @@ Pour ne synchroniser que la base de données :
 On peut utiliser sitesync avec différentes configurations, grâce au paramètre `--conf=` :
 
 ```bash
-./sitesync --conf="etc/config-site1"
+./sitesync --conf="config-site1"
 ```
 
 __sitesync__ utilisera alors le fichier de configuration `etc/config-site1/config`
