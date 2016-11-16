@@ -1,4 +1,8 @@
 #/bin/bash
+# configuration
+dst_mail_send="email@domain.com"
+
+# update employees mails
 MSG=" + Update employees mails 1.6 (DB:ps_employee.email)";
 if [ -n "$dst_mail_send" ]; then
     echo -n "$MSG"

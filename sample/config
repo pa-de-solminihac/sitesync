@@ -13,7 +13,6 @@ dst_site_protocol="http://"
 dst_site_host="local.site.com"
 dst_root_slug="/site"
 dst_files_root="/local/path/to/site";
-dst_mail_send=""
 
 # SSH connection to source hosting (remote server)
 src_server="$src_site_host"
