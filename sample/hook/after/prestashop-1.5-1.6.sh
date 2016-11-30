@@ -8,6 +8,7 @@ $dst_path_to_php $dst_path_to_resilient_replace -i "\[E=REWRITEBASE:\/\]" "[E=RE
 $dst_path_to_php $dst_path_to_resilient_replace -i "ErrorDocument 404 \/index\.php" "ErrorDocument 404 ${dst_root_slug}/index.php" "${dst_files_root}/.htaccess"
 rm -rf ${dst_files_root}/cache/smarty/compile/*
 rm -rf ${dst_files_root}/cache/cachefs/*
+rm -rf ${dst_files_root}/themes/*/cache/*
 # problemes de droits ?
 # chmod -R 777 ${dst_files_root}/cache/smarty/compile
 # chmod -R 777 ${dst_files_root}/cache/cachefs
