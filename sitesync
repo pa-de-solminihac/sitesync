@@ -244,7 +244,7 @@ then
             MSG="1/6 : dump de la base (distante)";
             printf "\r`tput el`%s" "$MSG" | tee -a $logfile
             echo "DROP DATABASE IF EXISTS \`$dst_dbname\`; CREATE DATABASE \`$dst_dbname\`; USE \`$dst_dbname\`; " > $sqlfile_tmp && \
-                ssh -p $src_ssh_port $src_unixuser@$src_server "($src_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $src_path_to_mysqldump --opt --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $DO_GZIP" | $DO_GUNZIP \
+                ssh -p $src_ssh_port $src_unixuser@$src_server "($src_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $src_path_to_mysqldump --opt --insert-ignore --no-create-db --no-create-info --insert-ignore $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $DO_GZIP" | $DO_GUNZIP \
                 >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
             RECUP_KO=$?
             ;;
@@ -252,7 +252,7 @@ then
             MSG="1/6 : dump de la base (locale)";
             printf "\r`tput el`%s" "$MSG" | tee -a $logfile
             echo "DROP DATABASE IF EXISTS \`$dst_dbname\`; CREATE DATABASE \`$dst_dbname\`; USE \`$dst_dbname\`; " > $sqlfile_tmp && \
-                (sh -c "$dst_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $dst_path_to_mysqldump --opt --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname") \
+                (sh -c "$dst_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $dst_path_to_mysqldump --opt --insert-ignore --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname") \
                 >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
             RECUP_KO=$?
             ;;
