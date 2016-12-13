@@ -7,6 +7,8 @@ echo "UPDATE ps_shop_url SET physical_uri = '$dst_root_slug/'; " >> $sqlfile;
 echo "UPDATE ps_configuration SET value = '0' WHERE name = 'PS_CSS_THEME_CACHE'; " >> $sqlfile;
 echo "UPDATE ps_configuration SET value = '0' WHERE name = 'PS_JS_THEME_CACHE'; " >> $sqlfile;
 echo "UPDATE ps_configuration SET value = '0' WHERE name = 'PS_HTML_THEME_COMPRESSION'; " >> $sqlfile;
+echo "UPDATE ps_configuration SET value = '2' WHERE name = 'PS_SMARTY_FORCE_COMPILE'; " >> $sqlfile;
+echo "UPDATE ps_configuration SET value = '0' WHERE name = 'PS_SMARTY_CACHE'; " >> $sqlfile;
 # affichage OK
 let COL=70-${#MSG}
 printf "%${COL}s\n" "OK"
