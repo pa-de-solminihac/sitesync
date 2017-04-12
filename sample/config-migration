@@ -77,7 +77,7 @@ sql_options_structure="--default-character-set=utf8 "
 sql_options="$sql_options_structure --routines "
 
 # transfer options, directories to ignore...
-rsync_options="-uvrpz --exclude /sitesync/ --exclude /stats/ --exclude .DS_Store "
+rsync_options="-uvrpzl --exclude /sitesync/ --exclude /stats/ --exclude .DS_Store "
 
 # path to tools
 src_path_to_mysqldump=mysqldump
