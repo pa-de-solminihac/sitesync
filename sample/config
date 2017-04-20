@@ -83,7 +83,7 @@ sql_ignores="--ignore-table=$src_dbname.table_a_ignorer_1 --ignore-table=$src_db
 
 # mysqldump options
 sql_options_structure="--default-character-set=utf8 "
-sql_options="$sql_options_structure --routines "
+sql_options="$sql_options_structure --routines --skip-triggers "
 
 # transfer options, directories to ignore...
 rsync_options="-uvrpztl --exclude /sitesync/ --exclude /stats/ --exclude .git/ --exclude .svn/ --exclude .cvs/ --exclude .DS_Store "
