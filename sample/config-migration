@@ -68,7 +68,7 @@ transport_type="rsync"                  # sync files with: rsync | lftp (if lftp
 src_type="remote_base"                  # get database from: local_file | local_base | remote_file | remote_base
 src_file="/path/to/dbname.sql.gz"       # if $src_type is a file ("local_file" or "remote_file") please provide the full path to the file
 compress=1                              # if $src_type is "local_base" or "remote_base", compress data on-the-fly
-                                        # if $src_type is "local_file" or "remote_file", handle compressed file
+                                        # if $src_type is "local_file" or "remote_file", handle compressed file (.gz and .7z are supported)
 # ignore database tables
 sql_ignores="--ignore-table=$src_dbname.table_a_ignorer_1 --ignore-table=$src_dbname.table_a_ignorer_2"
 

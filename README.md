@@ -130,7 +130,7 @@ src_type="local_file|local_base|remote_file|remote_base"
 
 Si __src_type__ est `local_file` ou `remote_file`, il faut préciser le chemin vers le fichier :
 ```ini
-src_file="/path/to/dbname.sql.7z"
+src_file="/path/to/dbname.sql.gz"
 ```
 
 On prendra le soin de préciser si le fichier est compressé :
