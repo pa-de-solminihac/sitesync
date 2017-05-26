@@ -357,9 +357,16 @@ then
     do
         sync_src_current_value="${sync_src[$k]}"
         sync_dst_current_value="${sync_dst[$k]}"
-        # ajoute le slash final s'il a été oublié !
-        sync_src_current_value="${sync_src_current_value/%\//}/"
-        sync_dst_current_value="${sync_dst_current_value/%\//}/"
+        if [ "$transport_type" == "rsync" ]; then
+            # ajoute le slash final pour rsync
+            sync_src_current_value="${sync_src_current_value/%\//}/"
+            sync_dst_current_value="${sync_dst_current_value/%\//}/"
+        fi
+        if [ "$transport_type" == "lftp" ]; then
+            # supprime le slash final pour lftp
+            sync_src_current_value="${sync_src_current_value/%\//}"
+            sync_dst_current_value="${sync_dst_current_value/%\//}"
+        fi
         MSG4="`expr 1 + $k`"
         MSG5=": \"${sync_src_current_value}\" => \"${sync_dst_current_value}\" "
         printf "\r`tput el`"                            # affichage uniquement
