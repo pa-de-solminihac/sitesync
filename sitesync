@@ -337,7 +337,7 @@ echo -n "$MSG" | tee -a $logfile
 if [ "$skip_sql" == "0" ];
 then
     cat $sqlfile | \
-        eval "$dst_path_to_mysql $arg_connexion_dst $dst_dbname --show-warnings" >> $logfile && \
+        eval "$dst_path_to_mysql $arg_connexion_dst --show-warnings" >> $logfile && \
         mv -f $sqlfile $sqlfile_backup && \
         let COL=70-${#MSG} && \
         printf "%${COL}s\n" "OK" | tee -a $logfile
