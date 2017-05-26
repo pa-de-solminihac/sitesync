@@ -369,7 +369,16 @@ then
             $dst_path_to_rsync $rsync_options -e "ssh -p $src_port" $src_user@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile 2>&1
         fi
         if [ "$transport_type" == "lftp" ]; then
-            $dst_path_to_lftp ftp://$src_user:$lftp_pass_escaped@$src_server -p $lftp_src_port -e "$lftp_connect_options mirror $lftp_mirror_command_options ${exclude_dirs/--exclude/-x} $sync_src_current_value $sync_dst_current_value; quit" >> $logfile 2>&1
+            bookmark_content="ftp://$src_user:$lftp_pass_escaped@$src_server:$lftp_src_port/"
+            # do not put password in bookmark_name even if it's a hash, as it's visible in command line
+            bookmark_name="$(echo -n "ftp://$src_user@$src_server:$lftp_src_port/" | md5sum - | cut -d' ' -f 1)"
+            bookmarks_file="$HOME/.local/share/lftp/bookmarks"
+            mkdir -p $HOME/.local/share/lftp
+            # add bookmark
+            touch $bookmarks_file && grep -q -F "$bookmark_name" $bookmarks_file || echo -e "$bookmark_name\t$bookmark_content" >> $bookmarks_file && chmod 600 $bookmarks_file
+            $dst_path_to_lftp -e "open $bookmark_name; $lftp_connect_options mirror $lftp_mirror_command_options ${exclude_dirs/--exclude/-x} $sync_src_current_value $sync_dst_current_value; quit" >> $logfile 2>&1
+            # remove bookmark
+            sed -i "/^$bookmark_name/d" $bookmarks_file
         fi
         # TODO: display progress indicator, using for example "lsof -ad3-999 -c rsync | grep -v '^COMMAND \| unix .* socket$'"
     done
