@@ -6,13 +6,13 @@
 src_site_protocol="http://"
 src_site_host="www.site.com"
 src_site_slug=""
-src_files_root="/remote/path/to/site/www";
+src_files_root="/remote/path/to/site/www"; # absolute path for rsync, chrooted path for lftp
 
 # destination hosting (local server)
 dst_site_protocol="http://"
 dst_site_host="local.site.com"
 dst_site_slug="/site"
-dst_files_root="/local/path/to/site";
+dst_files_root="$HOME/www"; # no trailing slash (neither for rsync nor for lftp)
 
 # RSYNC/FTP connection to source hosting (remote server)
 src_server="$src_site_host"
@@ -94,9 +94,8 @@ rsync_options="-uvrpztl $exclude_dirs "
 # lftp options
 lftp_pass=""
 lftp_src_port="$src_port"
-lftp_parallel="16"
 lftp_connect_options="set ftp:ssl-allow no; "
-lftp_mirror_command_options="--verbose"
+lftp_mirror_command_options="--parallel=16 --verbose"
 
 # path to tools
 src_path_to_mysqldump=mysqldump

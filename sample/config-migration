@@ -6,12 +6,12 @@
 src_user="monsite" # RSYNC/FTP username
 src_dbname="$src_user"
 src_site_host="www.$src_user.com"
-src_files_root="/home/$src_user/www";
+src_files_root="/home/$src_user/www"; # absolute path for rsync, chrooted path for lftp
 
 # destination hosting (local server)
 dst_dbname="$src_user"
 dst_site_host="$src_site_host"
-dst_files_root="/home/$src_user/www";
+dst_files_root="$HOME/www"; # no trailing slash (neither for rsync nor for lftp)
 
 ########################
 # ADVANCED CONFIGURATION
@@ -23,7 +23,7 @@ sync_dst+=("$dst_files_root")
 
 # source hosting (remote server)
 src_site_protocol="http://"
-src_file_slug=""
+src_site_slug=""
 src_server="$src_site_host"
 src_port="22"
 src_dbhostname="localhost" # as seen from $src_server
@@ -33,18 +33,18 @@ src_dbpass=""
 
 # destination hosting (local server)
 dst_site_protocol="$src_site_protocol"
-dst_file_slug=""
+dst_site_slug=""
 dst_dbhostname="localhost" # "127.0.0.1" sur certains hébergements
 dst_dbport=""
-dst_dbuser=""
+dst_dbuser="root"
 dst_dbpass=""
 
 # replace source URL with remote one in database
-replace_src+=("${src_site_protocol}www.${src_site_host}${src_file_slug}")
-replace_dst+=("${dst_site_protocol}${dst_site_host}${dst_file_slug}")
+replace_src+=("${src_site_protocol}www.${src_site_host}${src_site_slug}")
+replace_dst+=("${dst_site_protocol}${dst_site_host}${dst_site_slug}")
 
-replace_src+=("${src_site_protocol}${src_site_host}${src_file_slug}")
-replace_dst+=("${dst_site_protocol}${dst_site_host}${dst_file_slug}")
+replace_src+=("${src_site_protocol}${src_site_host}${src_site_slug}")
+replace_dst+=("${dst_site_protocol}${dst_site_host}${dst_site_slug}")
 
 # replace source PATH with remote one in database
 replace_src+=("$src_files_root")
@@ -85,9 +85,8 @@ rsync_options="-uvrpztl $exclude_dirs "
 # lftp options
 lftp_pass=""
 lftp_src_port="$src_port"
-lftp_parallel="16"
 lftp_connect_options="set ftp:ssl-allow no; "
-lftp_mirror_command_options="--verbose"
+lftp_mirror_command_options="--parallel=16 --verbose"
 
 # path to tools
 src_path_to_mysqldump=mysqldump

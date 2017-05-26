@@ -369,7 +369,7 @@ then
             $dst_path_to_rsync $rsync_options -e "ssh -p $src_port" $src_user@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile 2>&1
         fi
         if [ "$transport_type" == "lftp" ]; then
-            $dst_path_to_lftp ftp://$src_user:$lftp_pass_escaped@$src_server -p $lftp_src_port --parallel=$lftp_parallel -e "$lftp_connect_options mirror $lftp_mirror_command_options ${exclude_dirs/--exclude/-x} $sync_src_current_value $sync_dst_current_value; quit" >> $logfile 2>&1
+            $dst_path_to_lftp ftp://$src_user:$lftp_pass_escaped@$src_server -p $lftp_src_port -e "$lftp_connect_options mirror $lftp_mirror_command_options ${exclude_dirs/--exclude/-x} $sync_src_current_value $sync_dst_current_value; quit" >> $logfile 2>&1
         fi
         # TODO: display progress indicator, using for example "lsof -ad3-999 -c rsync | grep -v '^COMMAND \| unix .* socket$'"
     done
