@@ -86,7 +86,7 @@ rsync_options="-uvrpztl $exclude_dirs "
 lftp_pass=""
 lftp_src_port="$src_port"
 lftp_connect_options="set ftp:ssl-allow no; "
-lftp_mirror_command_options="--parallel=16 --verbose"
+lftp_mirror_command_options="--parallel=16 --verbose --only-newer"
 
 # path to tools
 src_path_to_mysqldump=mysqldump
