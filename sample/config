@@ -20,18 +20,18 @@ src_user="username"
 src_port="22"
 
 # source hosting (remote server)
-src_dbhostname="localhost"
-src_dbport=""
-src_dbname="dbname"
-src_dbuser="root"
-src_dbpass=""
+src_dbhostname="localhost" # optional, default behavior is to use ~/.my.cnf
+src_dbport="" # optional
+src_dbname="" # optional, default behavior is to use ~/.my.cnf
+src_dbuser="" # optional, default behavior is to use ~/.my.cnf
+src_dbpass="" # optional, default behavior is to use ~/.my.cnf
 
 # destination hosting (local server)
-dst_dbhostname="localhost" # "127.0.0.1" sometimes
-dst_dbport=""
-dst_dbname="local_dbname"
-dst_dbuser="root"
-dst_dbpass=""
+dst_dbhostname="localhost" # "127.0.0.1" sometimes, optional, default behavior is to use ~/.my.cnf
+dst_dbport="" # optional
+dst_dbname="" # optional, default behavior is to use ~/.my.cnf
+dst_dbuser="" # optional, default behavior is to use ~/.my.cnf
+dst_dbpass="" # optional, default behavior is to use ~/.my.cnf
 
 # copy source files into destination
 sync_src+=("$src_files_root")
@@ -89,7 +89,7 @@ sql_options="$sql_options_structure --routines --skip-triggers "
 exclude_dirs="--exclude /sitesync/ --exclude /stats/ --exclude .git/ --exclude .svn/ --exclude .cvs/ --exclude .DS_Store "
 
 # rsync options
-rsync_options="-uvrpztl $exclude_dirs "
+rsync_options="-urpztl $exclude_dirs "
 
 # lftp options
 lftp_pass=""

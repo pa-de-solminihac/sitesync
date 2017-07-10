@@ -25,12 +25,17 @@ declare -a sync_dst
 # valeurs par défaut
 skip_sql=0
 skip_files=0
+verbose=0
 path_to_sitesync="$(dirname "$0")"
+sitesync="$(basename $0)"
+sitesync_version="2.0"
 pushd $path_to_sitesync >/dev/null
 source inc/config-base
 
 # allowed parameters
 OPT_CONF="--conf"
+OPT_VERBOSE="--verbose"
+OPT_VERSION="--version"
 OPT_SQL="sql"
 OPT_FILES="files"
 
@@ -43,7 +48,7 @@ function usage() {
     Usage
     =====
 
-        $(basename $0) [$OPT_CONF=""] [sql | files]
+        $sitesync [$OPT_CONF=""] [sql | files]
 
     Options
     =======
@@ -56,6 +61,12 @@ function usage() {
             "etc/monsite/config" et les hooks utilisés seront ceux de "etc/monsite/hook"
 
             Par défaut : "", le fichier utilisé sera etc/config, les hooks seront cherchés dans "etc/hook"
+
+        $OPT_VERBOSE
+            Affiche les commandes exécutées et le détail de leur sortie
+
+        $OPT_VERSION
+            Affiche la version courante de $sitesync
 
         $OPT_SQL | $OPT_FILES
             Ne synchroniser que la base de données, ou que les fichiers.
@@ -70,6 +81,13 @@ do
         $OPT_CONF=*)
             OPT_CONF_SIZE="${#OPT_CONF}"
             CONF="${1:$OPT_CONF_SIZE+1}"
+            ;;
+        $OPT_VERBOSE)
+            verbose="1"
+            ;;
+        $OPT_VERSION)
+            echo "$sitesync version $sitesync_version"
+            exit
             ;;
         $OPT_SQL)
             skip_files=1
@@ -86,26 +104,61 @@ do
 done
 
 # chargement du fichier de config
-if [ ! -f "etc/$CONF/config" ]; then
+config_file_path="$(realpath "etc/$CONF/config")"
+if [ ! -f "$config_file_path" ]; then
     echo "Erreur : fichier de configuration non trouvé"
     exit
 else
-    source "etc/$CONF/config"
+    source "$config_file_path"
+fi
+
+# portability and available commands detection
+PV="cat"
+if [ "$verbose" == "1" ] && [ "$skip_sql" == "0" ]; then
+    TMPPV="$(which pv 2>/dev/null)"
+    if [ -x "$TMPPV" ]; then
+        PV="$TMPPV"
+    else
+        echo -e "\033${TERM_COLOR_YELLOW}Notice : installez la commande \"pv\" pour afficher la progression de l'import de la base de données\033${TERM_COLOR_NORMAL}"
+    fi
+fi
+
+# si format de fichier de config trop ancien propose des commandes pour l'upgrader
+if [ "$src_ssh_port" != "" ] && [ "$src_port" == "" ]; then
+    echo "# Le fichier de configuration est dans un format obsolète"
+    echo "# il faut le mettre à jour, par exemple en exécutant DANS L'ORDRE les commandes suivantes :"
+    echo "sed -i 's/src_root_slug/src_site_slug/g' \"$config_file_path\""
+    echo "sed -i 's/dst_root_slug/dst_site_slug/g' \"$config_file_path\""
+    echo "sed -i 's/src_unixuser/src_user/g' \"$config_file_path\""
+    echo "sed -i 's/src_hostname/src_dbhostname/g' \"$config_file_path\""
+    echo "sed -i 's/src_port/src_dbport/g' \"$config_file_path\""
+    echo "sed -i 's/dst_hostname/dst_dbhostname/g' \"$config_file_path\""
+    echo "sed -i 's/dst_port/dst_dbport/g' \"$config_file_path\""
+    echo "sed -i 's/src_ssh_port/src_port/g' \"$config_file_path\""
+    echo
+    echo "# Ajoutez ensuite les variables manquantes dans votre fichier de configuration"
+    echo "# en vous basant sur le fichier sample, par exemple avec la commande suivante :"
+    echo "vimdiff \"$config_file_path\" \"$path_to_sitesync/sample/config\""
+    echo
+    echo "# Vous aurez besoin de "
+    echo "    récupérer \"transport_type\""
+    echo "    récupérer \"exclude_dirs\""
+    echo "    adapter \"rsync_options\""
+    echo "    récupérer toute la section \"# lftp options\""
+    echo "    récupérer \"dst_path_to_lftp\""
+    exit
 fi
 
 # activation compression, selon le type de source (gzip supporté globalement, 7z uniquement en remote_file ou local_file) a cause des ses limitations
 src_file_extension="sql"
-if [ $compress -gt 0 ];
-then
+if [ $compress -gt 0 ]; then
     case "$src_type" in
         "remote_file" | "local_file")
             src_file_extension=$(echo "${src_file##*.}" | tr '[:upper:]' '[:lower:]');
-            if [ "$src_file_extension" == "gz" ];
-            then
+            if [ "$src_file_extension" == "gz" ]; then
                 DO_GZIP="cat"
                 DO_GUNZIP="gunzip -c"
-            elif [ "$src_file_extension" == "7z" ];
-            then
+            elif [ "$src_file_extension" == "7z" ]; then
                 DO_GZIP="cat"
                 DO_GUNZIP="7zr e -so"
             else
@@ -180,17 +233,13 @@ echo "Lancement de la synchro" >> $logfile # RAZ du fichier log
 echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 
 # contrôles d'erreurs
-if [ "$src_file_extension" == "gz" ];
-then
-    if [[ ! -x $(which gzip) || ! -x $(which gunzip)  ]];
-    then
+if [ "$src_file_extension" == "gz" ]; then
+    if [[ ! -x $(which gzip) || ! -x $(which gunzip)  ]]; then
         echo "Vous avez besoin de gzip et gunzip en local (c'est standard normalement) : # apt-get install gzip" | tee -a $logfile
         exit
     fi
-elif [ "$src_file_extension" == "7z" ]
-then
-    if [[ ! -x $(which 7zr) ]];
-    then
+elif [ "$src_file_extension" == "7z" ]; then
+    if [[ ! -x $(which 7zr) ]]; then
         echo "Vous avez besoin de 7zr en local : # apt-get install p7zip" | tee -a $logfile
         exit
     fi
@@ -202,8 +251,7 @@ fi
     #exit
 #fi
 
-if [ "${#sync_src[@]}" != "${#sync_dst[@]}" ];
-then
+if [ "${#sync_src[@]}" != "${#sync_dst[@]}" ]; then
     echo "Incohérence dans les synchronisations demandées, vérifiez les tableaux 'sync_src' et 'sync_dst' dans le fichier etc/$CONF/config" | tee -a $logfile
     exit
 fi
@@ -218,14 +266,18 @@ case "$src_type" in
         ;;
 esac
 
-if [ "$skip_sql" == "0" ];
-then
+if [ "$skip_sql" == "0" ]; then
     # backup distant ou local
     RECUP_KO=1
     case "$src_type" in
         "remote_file")
             MSG="1/6 : récupération du fichier dump (distant)";
             printf "\r`tput el`%s" "$MSG" | tee -a $logfile
+            if [ "$verbose" == "1" ]; then
+                echo -n -e "\033${TERM_COLOR_GRAY}"
+                echo >> $logfile
+                echo "ssh -p $src_port $src_user@$src_server \"$DO_GZIP $src_file\"\033${TERM_COLOR_NORMAL}" | tee -a $logfile
+            fi
             ssh -p $src_port $src_user@$src_server "$DO_GZIP $src_file" > $sqlfile_tmp && \
                 echo "DROP DATABASE IF EXISTS \`$dst_dbname\`; CREATE DATABASE \`$dst_dbname\`; USE \`$dst_dbname\`; " > $sqlfile && \
                 $DO_GUNZIP $sqlfile_tmp 2>/dev/null \
@@ -243,10 +295,19 @@ then
         "remote_base")
             MSG="1/6 : dump de la base (distante)";
             printf "\r`tput el`%s" "$MSG" | tee -a $logfile
+            if [ "$verbose" == "1" ]; then
+                echo -e "\033${TERM_COLOR_GRAY}"
+                echo >> $logfile
+                echo -n "ssh -p $src_port $src_user@$src_server \"($src_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $src_path_to_mysqldump --opt --insert-ignore --no-create-db --no-create-info --insert-ignore $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $DO_GZIP\" | $DO_GUNZIP | $PV" | tee -a $logfile
+                echo
+            fi
             echo "DROP DATABASE IF EXISTS \`$dst_dbname\`; CREATE DATABASE \`$dst_dbname\`; USE \`$dst_dbname\`; " > $sqlfile_tmp && \
-                ssh -p $src_port $src_user@$src_server "($src_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $src_path_to_mysqldump --opt --insert-ignore --no-create-db --no-create-info --insert-ignore $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $DO_GZIP" | $DO_GUNZIP \
+                ssh -p $src_port $src_user@$src_server "($src_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $src_path_to_mysqldump --opt --insert-ignore --no-create-db --no-create-info --insert-ignore $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $DO_GZIP" | $DO_GUNZIP | $PV \
                 >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
             RECUP_KO=$?
+            if [ "$verbose" == "1" ]; then
+                echo -n -e "\033${TERM_COLOR_NORMAL}"
+            fi
             ;;
         "local_base")
             MSG="1/6 : dump de la base (locale)";
@@ -254,31 +315,39 @@ then
             echo "DROP DATABASE IF EXISTS \`$dst_dbname\`; CREATE DATABASE \`$dst_dbname\`; USE \`$dst_dbname\`; " > $sqlfile_tmp && \
                 (sh -c "$dst_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $dst_path_to_mysqldump --opt --insert-ignore --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname") \
                 >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
-            RECUP_KO=$?
+            RECUP_KO=$fichiers ?
             ;;
     esac
-    if [ $RECUP_KO -gt 0 ];
-    then
-        let COL=70-${#MSG} && \
-        printf "%${COL}s\n" "KO" | tee -a $logfile
+    if [ $RECUP_KO -gt 0 ]; then
+        if [ "$verbose" == "0" ]; then
+            let COL=70-${#MSG} && \
+                printf "%${COL}s\n" "KO" | tee -a $logfile
+        fi
         exit
     else
-        let COL=70-${#MSG} && \
-        printf "%${COL}s\n" "OK" | tee -a $logfile
+        if [ "$verbose" == "0" ]; then
+            let COL=70-${#MSG} && \
+                printf "%${COL}s" "OK" | tee -a $logfile
+        fi
     fi
 else
     MSG="1/6 : récupération du fichier dump (distant)";
     printf "\r`tput el`%s" "$MSG" | tee -a $logfile
-    let COL=70-${#MSG} && \
-    printf "%${COL}s\n" ".." | tee -a $logfile
+    #TODO: pourquoi 72 au lieu de 70 ?
+    #if [ "$verbose" == "0" ]; then
+        let COL=72-${#MSG} && \
+            printf "%${COL}s\n" ".." | tee -a $logfile
+    #fi
 fi
 
 # remplacement des URL et chemins (même sérialisés)
 MSG1="2/6 : remplacement de";
 MSG2="${#replace_src[@]}";
 MSG3="URL et chemins                          "
-if [ "$skip_sql" == "0" ];
-then
+if [ "$skip_sql" == "0" ]; then
+    if [ "$verbose" == "0" ]; then
+        echo
+    fi
     for k in "${!replace_src[@]}"
     do
         replace_src_current_value=${replace_src["$k"]}
@@ -291,67 +360,98 @@ then
         printf "$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4" | tee -a $logfile
         $dst_path_to_php $dst_path_to_resilient_replace -i $resilient_replace_options "${replace_src_current_value}" "$replace_dst_current_value" $sqlfile_relative
     done
-    printf "\r`tput el`" # affichage uniquement
+    if [ "$verbose" == "0" ]; then
+        printf "\r`tput el`" # affichage uniquement
+    fi
     echo >> $logfile     # log uniquement
-    printf "$MSG1 %3d $MSG3  OK" "$MSG2" | tee -a $logfile
-    echo | tee -a $logfile
+    if [ "$verbose" == "0" ]; then
+        printf "$MSG1 %3d $MSG3  OK" "$MSG2" | tee -a $logfile
+        echo | tee -a $logfile
+    fi
     echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 else
-    printf "$MSG1 %3d $MSG3  .." "$MSG2" | tee -a $logfile
-    echo | tee -a $logfile
+    #if [ "$verbose" == "0" ]; then
+        printf "$MSG1 %3d $MSG3  .." "$MSG2" | tee -a $logfile
+        echo | tee -a $logfile
+    #fi
+fi
+if [ "$verbose" == "1" ]; then
+    echo
 fi
 
 # adaptation spécifiques
-MSG="3/6 : adaptations avant import (fichiers etc/$CONF/hook/before/*.sh)";
+MSG="3/6 : adaptations avant import (etc/$CONF/hook/before/*.sh)";
 # applique les fichiers dans hook
 echo -n "$MSG" | tee -a $logfile
 
-if [ "$skip_sql" == "0" ];
-then
+if [ "$skip_sql" == "0" ]; then
     # teste s'il y a des fichiers .sh
     shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
     files=(etc/$CONF/hook/before/*.sh);
     [ "$resetnullglob" ] && shopt -u nullglob
     # s'il y a des fichiers .sh
-    if [ ${#files[@]} -gt 0 ];
-    then
-        echo | tee -a $logfile
+    if [ "$verbose" == "1" ]; then
+        echo -e "\033${TERM_COLOR_GRAY}"
+    fi
+    if [ ${#files[@]} -gt 0 ]; then
+        if [ "$verbose" == "0" ]; then
+            echo | tee -a $logfile
+        fi
         for fich in etc/$CONF/hook/before/*.sh;
         do
             echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
             source $fich;
         done
     else
-        let COL=70-${#MSG} && \
-        printf "%${COL}s\n" ".." | tee -a $logfile
+        if [ "$verbose" == "0" ]; then
+            let COL=70-${#MSG} && \
+                printf "%${COL}s\n" ".." | tee -a $logfile
+        fi
+    fi
+    if [ "$verbose" == "1" ]; then
+        echo -n -e "\033${TERM_COLOR_NORMAL}"
     fi
     echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 else
-    let COL=70-${#MSG} && \
-    printf "%${COL}s\n" ".." | tee -a $logfile
+    #if [ "$verbose" == "0" ]; then
+        let COL=70-${#MSG} && \
+            printf "%${COL}s\n" ".." | tee -a $logfile
+    #fi
 fi
 
 # importe la BD modifiee
 MSG="4/6 : import de la base de donnees"
 echo -n "$MSG" | tee -a $logfile
-if [ "$skip_sql" == "0" ];
-then
-    cat $sqlfile | \
+if [ "$skip_sql" == "0" ]; then
+    if [ "$verbose" == "1" ]; then
+        echo -e "\033${TERM_COLOR_GRAY}"
+    fi
+    RECUP_KO=1
+    $PV $sqlfile | \
         eval "$dst_path_to_mysql $arg_connexion_dst --show-warnings" >> $logfile && \
         mv -f $sqlfile $sqlfile_backup && \
-        let COL=70-${#MSG} && \
-        printf "%${COL}s\n" "OK" | tee -a $logfile
+    RECUP_KO=$?
+    if [ "$verbose" == "1" ]; then
+        echo -n -e "\033${TERM_COLOR_NORMAL}"
+    fi
+    if [ "$RECUP_KO" == "0" ]; then
+        if [ "$verbose" == "0" ]; then
+            let COL=70-${#MSG} && \
+                printf "%${COL}s\n" "OK" | tee -a $logfile
+        fi
+    fi
     echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 else
-    let COL=70-${#MSG} && \
-    printf "%${COL}s\n" ".." | tee -a $logfile
+    #if [ "$verbose" == "0" ]; then
+        let COL=70-${#MSG} && \
+            printf "%${COL}s\n" ".." | tee -a $logfile
+    #fi
 fi
 
 MSG1="5/6 : synchronisation de";
 MSG2="${#sync_src[@]}";
 MSG3="dossiers                             "
-if [ "$skip_files" == "0" ];
-then
+if [ "$skip_files" == "0" ]; then
     lftp_pass_escaped="$(printf "%q" "$lftp_pass")"
     for k in "${!sync_src[@]}"
     do
@@ -373,9 +473,19 @@ then
         echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement
         printf "$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4" | tee -a $logfile
         if [ "$transport_type" == "rsync" ]; then
-            $dst_path_to_rsync $rsync_options -e "ssh -p $src_port" $src_user@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile 2>&1
+            if [ "$verbose" == "1" ]; then
+                rsync_options="$rsync_options --info=progress2 "
+                echo -e "\033${TERM_COLOR_GRAY}"
+                echo >> $logfile
+                echo "$dst_path_to_rsync $rsync_options -e \"ssh -p $src_port\" $src_user@$src_server:$sync_src_current_value $sync_dst_current_value" | tee -a $logfile
+                $dst_path_to_rsync $rsync_options --log-file="$logfile" -e "ssh -p $src_port" $src_user@$src_server:$sync_src_current_value $sync_dst_current_value
+                echo -n -e "\033${TERM_COLOR_NORMAL}"
+            else
+                $dst_path_to_rsync $rsync_options -v -e "ssh -p $src_port" $src_user@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile 2>&1
+            fi
         fi
         if [ "$transport_type" == "lftp" ]; then
+            # we don't want to show the password in the command line or env vars, so we create a temporary lftp bookmark
             bookmark_content="ftp://$src_user:$lftp_pass_escaped@$src_server:$lftp_src_port/"
             # do not put password in bookmark_name even if it's a hash, as it's visible in command line
             bookmark_name="$(echo -n "ftp://$src_user@$src_server:$lftp_src_port/" | md5sum - | cut -d' ' -f 1)"
@@ -383,48 +493,62 @@ then
             mkdir -p $HOME/.local/share/lftp
             # add bookmark
             touch $bookmarks_file && grep -q -F "$bookmark_name" $bookmarks_file || echo -e "$bookmark_name\t$bookmark_content" >> $bookmarks_file && chmod 600 $bookmarks_file
-            $dst_path_to_lftp -e "open $bookmark_name; $lftp_connect_options mirror $lftp_mirror_command_options ${exclude_dirs/--exclude/-x} $sync_src_current_value $sync_dst_current_value; quit" >> $logfile 2>&1
+            if [ "$verbose" == "1" ]; then
+                echo
+                echo >> $logfile
+                echo "$dst_path_to_lftp -e \"$lftp_connect_options; open $bookmark_name; mirror $lftp_mirror_command_options ${exclude_dirs/--exclude/-x} $sync_src_current_value $sync_dst_current_value; quit\" " | tee -a $logfile
+                echo
+            fi
+            $dst_path_to_lftp -e "$lftp_connect_options; open $bookmark_name; $lftp_connect_options mirror $lftp_mirror_command_options ${exclude_dirs/--exclude/-x} $sync_src_current_value $sync_dst_current_value; quit" >> $logfile 2>&1
             # remove bookmark
             sed -i "/^$bookmark_name/d" $bookmarks_file
         fi
         # TODO: display progress indicator, using for example "lsof -ad3-999 -c rsync | grep -v '^COMMAND \| unix .* socket$'"
     done
-    printf "\r`tput el`$MSG1 %3d $MSG3  OK" "$MSG2" | tee -a $logfile
-    echo | tee -a $logfile
+    if [ "$verbose" == "0" ]; then
+        printf "\r`tput el`$MSG1 %3d $MSG3  OK" "$MSG2" | tee -a $logfile
+        echo | tee -a $logfile
+    fi
     echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 else
-    printf "\r`tput el`$MSG1 %3d $MSG3  .." "$MSG2" | tee -a $logfile
-    echo | tee -a $logfile
+    #if [ "$verbose" == "0" ]; then
+        printf "\r`tput el`$MSG1 %3d $MSG3  .." "$MSG2" | tee -a $logfile
+        echo | tee -a $logfile
+    #fi
 fi
 
-MSG="6/6 : adaptations apres import (fichiers etc/$CONF/hook/after/*.sh)";
+MSG="6/6 : adaptations apres import (etc/$CONF/hook/after/*.sh)";
 # applique les fichiers dans hook
 echo -n "$MSG" | tee -a $logfile
-if [ "$skip_files" == "0" ];
-then
+if [ "$skip_files" == "0" ]; then
     # teste s'il y a des fichiers .sh
     shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
     files=(etc/$CONF/hook/after/*.sh);
     [ "$resetnullglob" ] && shopt -u nullglob
     # s'il y a des fichiers .sh
-    if [ ${#files[@]} -gt 0 ];
-    then
-        echo | tee -a $logfile
+    if [ ${#files[@]} -gt 0 ]; then
+        if [ "$verbose" == "0" ]; then
+            echo | tee -a $logfile
+        fi
         for fich in etc/$CONF/hook/after/*.sh;
         do
             echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
             source $fich;
         done
     else
-        let COL=70-${#MSG} && \
-        printf "%${COL}s\n" ".." | tee -a $logfile
+        if [ "$verbose" == "0" ]; then
+            let COL=70-${#MSG} && \
+                printf "%${COL}s\n" ".." | tee -a $logfile
+        fi
     fi
 else
-    let COL=70-${#MSG} && \
-    printf "%${COL}s\n" ".." | tee -a $logfile
+    #if [ "$verbose" == "0" ]; then
+        let COL=70-${#MSG} && \
+            printf "%${COL}s\n" ".." | tee -a $logfile
+    #fi
 fi
 
-echo "Fin de la synchro" >> $logfile
+echo -e "\nFin de la synchro" >> $logfile
 
 popd >/dev/null
 

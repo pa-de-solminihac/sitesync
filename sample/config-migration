@@ -36,7 +36,7 @@ dst_site_protocol="$src_site_protocol"
 dst_site_slug=""
 dst_dbhostname="localhost" # "127.0.0.1" sur certains hébergements
 dst_dbport=""
-dst_dbuser="root"
+dst_dbuser=""
 dst_dbpass=""
 
 # replace source URL with remote one in database
@@ -45,6 +45,13 @@ replace_dst+=("${dst_site_protocol}${dst_site_host}${dst_site_slug}")
 
 replace_src+=("${src_site_protocol}${src_site_host}${src_site_slug}")
 replace_dst+=("${dst_site_protocol}${dst_site_host}${dst_site_slug}")
+
+# Uncomment for servers not using utf8mb4
+# replace_src+=("utf8mb4_unicode_ci")
+# replace_dst+=("utf8_unicode_ci")
+
+# replace_src+=("CHARSET=utf8mb4")
+# replace_dst+=("CHARSET=utf8")
 
 # replace source PATH with remote one in database
 replace_src+=("$src_files_root")
@@ -77,10 +84,10 @@ sql_options_structure="--default-character-set=utf8 "
 sql_options="$sql_options_structure --routines --skip-triggers "
 
 # transfer options, directories to ignore...
-exclude_dirs="--exclude /sitesync/ --exclude /stats/ --exclude .git/ --exclude .svn/ --exclude .cvs/ --exclude .DS_Store "
+exclude_dirs="--exclude /sitesync/ --exclude .DS_Store "
 
 # rsync options
-rsync_options="-uvrpztl $exclude_dirs "
+rsync_options="-urpztl $exclude_dirs "
 
 # lftp options
 lftp_pass=""
