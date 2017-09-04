@@ -315,7 +315,7 @@ if [ "$skip_sql" == "0" ]; then
             echo "DROP DATABASE IF EXISTS \`$dst_dbname\`; CREATE DATABASE \`$dst_dbname\`; USE \`$dst_dbname\`; " > $sqlfile_tmp && \
                 (sh -c "$dst_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $dst_path_to_mysqldump --opt --insert-ignore --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname") \
                 >> $sqlfile_tmp && mv -f $sqlfile_tmp $sqlfile
-            RECUP_KO=$fichiers ?
+            RECUP_KO=$?
             ;;
     esac
     if [ $RECUP_KO -gt 0 ]; then
