@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -e -o pipefail -o errtrace -o functrace
+trap 'err_handler $?' ERR
+
+err_handler() {
+    trap - ERR
+    let i=0 exit_status=$1
+    echo -ne "\033[0;31m"
+    echo
+    echo "Aborting on error $exit_status:"
+    echo "--------------------"
+    while caller $i; do ((++i)); done
+    echo -ne "\033[0m"
+    exit $?
+}
+
+BASE_PATH="$(dirname "$0")"
+cd $BASE_PATH;
+
+FROM="$1"
+TO="$2"
+DBNAME="$3"
+USER="$4"
+PASS="$5"
+resilient_replace="$BASE_PATH/resilient_replace"
+mysql="mysql"
+mysqldump="mysqldump"
+mysql_options=""
+
+USER_ESC="$(printf "%q" "$USER")"
+PASS_ESC="$(printf "%q" "$PASS")"
+
+if [ "$DBNAME" == "" ]; then
+    echo "Usage: $0 <search_pattern> <replace> <db_name> [<user>] [<pass>]"
+    exit
+fi
+
+if [ "$USER" != "" ]; then
+    mysql_options="$mysql_options -u $USER_ESC "
+fi
+
+if [ "$PASS" != "" ]; then
+    mysql_options="$mysql_options -p$PASS_ESC "
+fi
+
+# replace into database
+curdate="$(date +%Y%m%d)"
+sqlfile=$(mktemp ./$DBNAME.$curdate.XXXXXX)
+mysqldump "$DBNAME" -r "$sqlfile" && \
+    "$resilient_replace" -i "$FROM" "$TO" "$sqlfile" && \
+    mysql "$DBNAME" < "$sqlfile"
+rm $sqlfile

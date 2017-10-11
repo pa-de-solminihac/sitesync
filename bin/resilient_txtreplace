@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -e -o pipefail -o errtrace -o functrace
+trap 'err_handler $?' ERR
+
+err_handler() {
+    trap - ERR
+    let i=0 exit_status=$1
+    echo -ne "\033[0;31m"
+    echo
+    echo "Aborting on error $exit_status:"
+    echo "--------------------"
+    while caller $i; do ((++i)); done
+    echo -ne "\033[0m"
+    exit $?
+}
+
+replace_in_text_files() {
+    directory="$1"
+    from="$2"
+    to="$3"
+    find "$directory" -type f \
+        -not -path '*/replace.sh' \
+        -not -path '*.git/*' \
+        -exec sh -c "grep -Iq '$from' \"{}\" && \"$resilient_replace\" -i '$from' '$to' \"{}\"" \;
+}
+
+BASE_PATH="$(dirname "$0")"
+cd $BASE_PATH;
+
+FROM="$1"
+TO="$2"
+DIR="$3"
+resilient_replace="$BASE_PATH/resilient_replace"
+
+if [ "$DIR" == "" ] || [ "$DIR" == "/" ]; then
+    echo "Usage: $0 <search_pattern> <replace> </path/to/directory>"
+    exit
+fi
+
+# replace into text files
+replace_in_text_files "$FROM" "$TO" "$DIR"
