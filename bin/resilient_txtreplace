@@ -15,9 +15,9 @@ err_handler() {
 }
 
 replace_in_text_files() {
-    directory="$1"
-    from="$2"
-    to="$3"
+    from="$1"
+    to="$2"
+    directory="$3"
     find "$directory" -type f \
         -not -path '*/replace.sh' \
         -not -path '*.git/*' \
