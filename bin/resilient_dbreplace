@@ -14,7 +14,8 @@ err_handler() {
     exit $?
 }
 
-BASE_PATH="$(dirname "$0")"
+REL_PATH="$(dirname "$0")"
+BASE_PATH="$(realpath "$REL_PATH")"
 cd $BASE_PATH;
 
 FROM="$1"

@@ -24,7 +24,8 @@ replace_in_text_files() {
         -exec sh -c "grep -Iq '$from' \"{}\" && \"$resilient_replace\" -i '$from' '$to' \"{}\"" \;
 }
 
-BASE_PATH="$(dirname "$0")"
+REL_PATH="$(dirname "$0")"
+BASE_PATH="$(realpath "$REL_PATH")"
 cd $BASE_PATH;
 
 FROM="$1"
