@@ -24,13 +24,14 @@ replace_in_text_files() {
         -exec sh -c "grep -Iq '$from' \"{}\" && \"$resilient_replace\" -i '$from' '$to' \"{}\"" \;
 }
 
+CUR_PATH="$(pwd)"
 REL_PATH="$(dirname "$0")"
 BASE_PATH="$(realpath "$REL_PATH")"
 cd $BASE_PATH;
 
 FROM="$1"
 TO="$2"
-DIR="$3"
+DIR="$CUR_PATH/$3"
 resilient_replace="$BASE_PATH/resilient_replace"
 
 if [ "$DIR" == "" ] || [ "$DIR" == "/" ]; then
