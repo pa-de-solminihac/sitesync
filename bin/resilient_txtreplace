@@ -31,10 +31,14 @@ cd $BASE_PATH;
 
 FROM="$1"
 TO="$2"
-DIR="$CUR_PATH/$3"
+if [ "${3:0:1}" == "/" ]; then
+    DIR="$3"
+else
+    DIR="$CUR_PATH/$3"
+fi
 resilient_replace="$BASE_PATH/resilient_replace"
 
-if [ "$DIR" == "" ] || [ "$DIR" == "/" ]; then
+if [ "$3" == "" ] || [ "$DIR" == "" ] || [ "$DIR" == "/" ]; then
     echo "Usage: $0 <search_pattern> <replace> </path/to/directory>"
     exit
 fi
