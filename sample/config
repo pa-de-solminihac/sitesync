@@ -17,7 +17,7 @@ dst_files_root="$HOME/www"; # no trailing slash (neither for rsync nor for lftp)
 # RSYNC/FTP connection to source hosting (remote server)
 src_server="$src_site_host"
 src_user="username"
-src_port="22"
+src_port="22" # 22 for rsync, 21 for lftp
 
 # source hosting (remote server)
 src_dbhostname="localhost" # optional, default behavior is to use ~/.my.cnf
@@ -29,7 +29,7 @@ src_dbpass="" # optional, default behavior is to use ~/.my.cnf
 # destination hosting (local server)
 dst_dbhostname="localhost" # "127.0.0.1" sometimes, optional, default behavior is to use ~/.my.cnf
 dst_dbport="" # optional
-dst_dbname="" # optional, default behavior is to use ~/.my.cnf
+dst_dbname=""
 dst_dbuser="" # optional, default behavior is to use ~/.my.cnf
 dst_dbpass="" # optional, default behavior is to use ~/.my.cnf
 
