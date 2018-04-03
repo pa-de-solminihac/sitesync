@@ -97,6 +97,10 @@ lftp_src_port="$src_port"
 lftp_connect_options="set ftp:ssl-allow no; "
 lftp_mirror_command_options="--parallel=16 --verbose --only-newer"
 
+# niceness options
+remote_nice="ionice -c3 nice " # be nice with IO and CPU, may be empty if you want to use all available ressources
+local_nice="ionice -c3 nice "  # be nice with IO and CPU, may be empty if you want to use all available ressources
+
 # path to tools
 src_path_to_mysqldump=mysqldump
 dst_path_to_mysqldump=mysqldump
