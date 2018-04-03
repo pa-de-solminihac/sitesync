@@ -23,6 +23,8 @@ declare -a sync_src
 declare -a sync_dst
 
 # valeurs par défaut
+remote_nice="ionice -c3 nice "
+local_nice="ionice -c3 nice "
 skip_sql=0
 skip_files=0
 verbose=0
@@ -282,12 +284,12 @@ if [ "$skip_sql" == "0" ]; then
             if [ "$verbose" == "1" ]; then
                 echo -n -e "\033${TERM_COLOR_GRAY}"
                 echo >> $logfile
-                echo "ssh -p $src_port $src_user@$src_server \"$DO_GZIP $src_file\"\033${TERM_COLOR_NORMAL}" | tee -a $logfile
+                echo "ssh -p $src_port $src_user@$src_server \"$remote_nice $DO_GZIP $src_file\"\033${TERM_COLOR_NORMAL}" | tee -a $logfile
             fi
-            ssh -p $src_port $src_user@$src_server "$DO_GZIP $src_file" > "$sqlfile_tmp" && \
+            ssh -p $src_port $src_user@$src_server "$remote_nice $DO_GZIP $src_file" > "$sqlfile_tmp" && \
                 rm "$sqlfile" && \
                 echo "DROP DATABASE IF EXISTS \`$dst_dbname\`; CREATE DATABASE \`$dst_dbname\`; USE \`$dst_dbname\`; " > "$sqlfile" && \
-                $DO_GUNZIP "$sqlfile_tmp" 2>/dev/null \
+                $local_nice $DO_GUNZIP "$sqlfile_tmp" 2>/dev/null \
                 >> "$sqlfile" && rm -f "$sqlfile_tmp"
             RECUP_KO=$?
             ;;
@@ -295,7 +297,7 @@ if [ "$skip_sql" == "0" ]; then
             MSG="1/7 : récupération du fichier dump (local : $src_file)";
             printf "\r`tput el`%s" "$MSG" | tee -a $logfile
             echo "DROP DATABASE IF EXISTS \`$dst_dbname\`; CREATE DATABASE \`$dst_dbname\`; USE \`$dst_dbname\`; " > "$sqlfile_tmp" && \
-                $DO_GUNZIP $src_file 2>/dev/null \
+                $local_nice $DO_GUNZIP $src_file 2>/dev/null \
                 >> "$sqlfile_tmp" && mv -f "$sqlfile_tmp" "$sqlfile"
             RECUP_KO=$?
             ;;
@@ -305,11 +307,11 @@ if [ "$skip_sql" == "0" ]; then
             if [ "$verbose" == "1" ]; then
                 echo -e "\033${TERM_COLOR_GRAY}"
                 echo >> $logfile
-                echo -n "ssh -p $src_port $src_user@$src_server \"($src_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $src_path_to_mysqldump --opt --insert-ignore --no-create-db --no-create-info --insert-ignore $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $DO_GZIP\" | $DO_GUNZIP | $PV" | tee -a $logfile
+                echo -n "ssh -p $src_port $src_user@$src_server \"($remote_nice $src_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $remote_nice $src_path_to_mysqldump --opt --insert-ignore --no-create-db --no-create-info --insert-ignore $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $remote_nice $DO_GZIP\" | $local_nice $DO_GUNZIP | $PV" | tee -a $logfile
                 echo
             fi
             echo "DROP DATABASE IF EXISTS \`$dst_dbname\`; CREATE DATABASE \`$dst_dbname\`; USE \`$dst_dbname\`; " > "$sqlfile_tmp" && \
-                ssh -p $src_port $src_user@$src_server "($src_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $src_path_to_mysqldump --opt --insert-ignore --no-create-db --no-create-info --insert-ignore $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $DO_GZIP" | $DO_GUNZIP | $PV \
+                ssh -p $src_port $src_user@$src_server "($remote_nice $src_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $remote_nice $src_path_to_mysqldump --opt --insert-ignore --no-create-db --no-create-info --insert-ignore $sql_options $sql_ignores $arg_connexion_src $src_dbname) | $remote_nice $DO_GZIP" | $local_nice $DO_GUNZIP | $PV \
                 >> "$sqlfile_tmp" && mv -f "$sqlfile_tmp" "$sqlfile"
             RECUP_KO=$?
             if [ "$verbose" == "1" ]; then
@@ -320,7 +322,7 @@ if [ "$skip_sql" == "0" ]; then
             MSG="1/7 : dump de la base (locale)";
             printf "\r`tput el`%s" "$MSG" | tee -a $logfile
             echo "DROP DATABASE IF EXISTS \`$dst_dbname\`; CREATE DATABASE \`$dst_dbname\`; USE \`$dst_dbname\`; " > "$sqlfile_tmp" && \
-                (sh -c "$dst_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $dst_path_to_mysqldump --opt --insert-ignore --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname") \
+                (sh -c "$local_nice $dst_path_to_mysqldump --opt --no-data --no-create-db $sql_options_structure $arg_connexion_src $src_dbname && $local_nice $dst_path_to_mysqldump --opt --insert-ignore --no-create-db --no-create-info $sql_options $sql_ignores $arg_connexion_src $src_dbname") \
                 >> "$sqlfile_tmp" && mv -f "$sqlfile_tmp" "$sqlfile"
             RECUP_KO=$?
             ;;
@@ -368,7 +370,7 @@ if [ "$skip_sql" == "0" ]; then
         echo >> $logfile                                # log uniquement
         echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile    # log uniquement
         printf "$MSG1 %3d $MSG3 %3d $MSG5" "$MSG2" "$MSG4" | tee -a $logfile
-        $dst_path_to_php $dst_path_to_resilient_replace -i $resilient_replace_options "${replace_src_current_value}" "$replace_dst_current_value" $sqlfile_relative
+        $local_nice $dst_path_to_php $dst_path_to_resilient_replace -i $resilient_replace_options "${replace_src_current_value}" "$replace_dst_current_value" $sqlfile_relative
     done
     if [ "$verbose" == "0" ]; then
         printf "\r`tput el`" # affichage uniquement
@@ -393,7 +395,6 @@ fi
 MSG="3/7 : adaptations avant import (etc/$CONF/hook/before/*.sh)";
 # applique les fichiers dans hook
 echo -n "$MSG" | tee -a $logfile
-
 if [ "$skip_sql" == "0" ]; then
     # teste s'il y a des fichiers .sh
     shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
@@ -410,7 +411,7 @@ if [ "$skip_sql" == "0" ]; then
         for fich in etc/$CONF/hook/before/*.sh;
         do
             echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
-            source $fich;
+            $local_nice source $fich;
         done
     else
         if [ "$verbose" == "0" ]; then
@@ -429,11 +430,40 @@ else
     #fi
 fi
 
+# importe la BD modifiee
+MSG="4/7 : import de la base de donnees"
+echo -n "$MSG" | tee -a $logfile
+if [ "$skip_sql" == "0" ]; then
+    if [ "$verbose" == "1" ]; then
+        echo -e "\033${TERM_COLOR_GRAY}"
+        echo "$PV $sqlfile | $local_nice $dst_path_to_mysql $arg_connexion_dst --show-warnings"
+    fi
+    RECUP_KO=1
+    $PV "$sqlfile" | \
+        eval "$local_nice $dst_path_to_mysql $arg_connexion_dst --show-warnings" >> $logfile && \
+        mv -f "$sqlfile" "$sqlfile_backup" && \
+    RECUP_KO=$?
+    if [ "$verbose" == "1" ]; then
+        echo -n -e "\033${TERM_COLOR_NORMAL}"
+    fi
+    if [ "$RECUP_KO" == "0" ]; then
+        if [ "$verbose" == "0" ]; then
+            let COL=70-${#MSG} && \
+                printf "%${COL}s\n" "OK" | tee -a $logfile
+        fi
+    fi
+    echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
+else
+    #if [ "$verbose" == "0" ]; then
+        let COL=70-${#MSG} && \
+            printf "%${COL}s\n" ".." | tee -a $logfile
+    #fi
+fi
+
 # adaptation spécifiques
-MSG="4/7 : adaptations après import (etc/$CONF/hook/between/*.sh)";
+MSG="5/7 : adaptations après import (etc/$CONF/hook/between/*.sh)";
 # applique les fichiers dans hook
 echo -n "$MSG" | tee -a $logfile
-
 if [ "$skip_sql" == "0" ]; then
     # teste s'il y a des fichiers .sh
     shopt -q nullglob || resetnullglob=1; shopt -s nullglob;
@@ -450,7 +480,7 @@ if [ "$skip_sql" == "0" ]; then
         for fich in etc/$CONF/hook/between/*.sh;
         do
             echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
-            source $fich;
+            $local_nice source $fich;
         done
     else
         if [ "$verbose" == "0" ]; then
@@ -460,38 +490,6 @@ if [ "$skip_sql" == "0" ]; then
     fi
     if [ "$verbose" == "1" ]; then
         echo -n -e "\033${TERM_COLOR_NORMAL}"
-    fi
-    echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
-else
-    #if [ "$verbose" == "0" ]; then
-        let COL=70-${#MSG} && \
-            printf "%${COL}s\n" ".." | tee -a $logfile
-    #fi
-fi
-
-
-
-# importe la BD modifiee
-MSG="5/7 : import de la base de donnees"
-echo -n "$MSG" | tee -a $logfile
-if [ "$skip_sql" == "0" ]; then
-    if [ "$verbose" == "1" ]; then
-        echo -e "\033${TERM_COLOR_GRAY}"
-        echo "$PV $sqlfile | $dst_path_to_mysql $arg_connexion_dst --show-warnings"
-    fi
-    RECUP_KO=1
-    $PV "$sqlfile" | \
-        eval "$dst_path_to_mysql $arg_connexion_dst --show-warnings" >> $logfile && \
-        mv -f "$sqlfile" "$sqlfile_backup" && \
-    RECUP_KO=$?
-    if [ "$verbose" == "1" ]; then
-        echo -n -e "\033${TERM_COLOR_NORMAL}"
-    fi
-    if [ "$RECUP_KO" == "0" ]; then
-        if [ "$verbose" == "0" ]; then
-            let COL=70-${#MSG} && \
-                printf "%${COL}s\n" "OK" | tee -a $logfile
-        fi
     fi
     echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
 else
@@ -535,11 +533,11 @@ if [ "$skip_files" == "0" ]; then
                 rsync_options="$rsync_options --info=progress2 "
                 echo -e "\033${TERM_COLOR_GRAY}"
                 echo >> $logfile
-                echo "$dst_path_to_rsync $rsync_options -e \"ssh -p $src_port\" $src_user@$src_server:$sync_src_current_value $sync_dst_current_value" | tee -a $logfile
-                $dst_path_to_rsync $rsync_options --log-file="$logfile" -e "ssh -p $src_port" $src_user@$src_server:$sync_src_current_value $sync_dst_current_value
+                echo "$local_nice $dst_path_to_rsync --rsync-path="$remote_nice rsync" $rsync_options -e \"ssh -p $src_port\" $src_user@$src_server:$sync_src_current_value $sync_dst_current_value" | tee -a $logfile
+                $local_nice $dst_path_to_rsync --rsync-path="$remote_nice rsync" $rsync_options --log-file="$logfile" -e "$remote_nice ssh -p $src_port" $src_user@$src_server:$sync_src_current_value $sync_dst_current_value
                 echo -n -e "\033${TERM_COLOR_NORMAL}"
             else
-                $dst_path_to_rsync $rsync_options -v -e "ssh -p $src_port" $src_user@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile 2>&1
+                $local_nice $dst_path_to_rsync --rsync-path="$remote_nice rsync" $rsync_options -v -e "$remote_nice ssh -p $src_port" $src_user@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile 2>&1
             fi
         fi
         if [ "$transport_type" == "lftp" ]; then
@@ -554,11 +552,11 @@ if [ "$skip_files" == "0" ]; then
             if [ "$verbose" == "1" ]; then
                 echo -e "\033${TERM_COLOR_GRAY}"
                 echo >> $logfile
-                echo "$dst_path_to_lftp -e \"$lftp_connect_options; open $bookmark_name; mirror $lftp_mirror_command_options ${exclude_dirs/--exclude/-x} $sync_src_current_value $sync_dst_current_value; quit\" " | tee -a $logfile
-                $dst_path_to_lftp -e "$lftp_connect_options; open $bookmark_name; $lftp_connect_options mirror $lftp_mirror_command_options ${exclude_dirs/--exclude/-x} $sync_src_current_value $sync_dst_current_value; quit" | tee -a $logfile
+                echo "$local_nice $dst_path_to_lftp -e \"$lftp_connect_options; open $bookmark_name; mirror $lftp_mirror_command_options ${exclude_dirs/--exclude/-x} $sync_src_current_value $sync_dst_current_value; quit\" " | tee -a $logfile
+                $local_nice $dst_path_to_lftp -e "$lftp_connect_options; open $bookmark_name; $lftp_connect_options mirror $lftp_mirror_command_options ${exclude_dirs/--exclude/-x} $sync_src_current_value $sync_dst_current_value; quit" | tee -a $logfile
                 echo -e "\033${TERM_COLOR_NORMAL}"
             else
-                $dst_path_to_lftp -e "$lftp_connect_options; open $bookmark_name; $lftp_connect_options mirror $lftp_mirror_command_options ${exclude_dirs/--exclude/-x} $sync_src_current_value $sync_dst_current_value; quit" >> $logfile 2>&1
+                $local_nice $dst_path_to_lftp -e "$lftp_connect_options; open $bookmark_name; $lftp_connect_options mirror $lftp_mirror_command_options ${exclude_dirs/--exclude/-x} $sync_src_current_value $sync_dst_current_value; quit" >> $logfile 2>&1
             fi
             # remove bookmark
             sed -i "/^$bookmark_name/d" $bookmarks_file
@@ -593,7 +591,7 @@ if [ "$skip_files" == "0" ]; then
         for fich in etc/$CONF/hook/after/*.sh;
         do
             echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
-            source $fich;
+            $local_nice source $fich;
         done
     else
         if [ "$verbose" == "0" ]; then
