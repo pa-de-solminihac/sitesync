@@ -533,11 +533,11 @@ if [ "$skip_files" == "0" ]; then
                 rsync_options="$rsync_options --info=progress2 "
                 echo -e "\033${TERM_COLOR_GRAY}"
                 echo >> $logfile
-                echo "$local_nice $dst_path_to_rsync $rsync_options -e \"ssh -p $src_port\" $src_user@$src_server:$sync_src_current_value $sync_dst_current_value" | tee -a $logfile
-                $local_nice $dst_path_to_rsync $rsync_options --log-file="$logfile" -e "ssh -p $src_port" $src_user@$src_server:$sync_src_current_value $sync_dst_current_value
+                echo "$local_nice $dst_path_to_rsync --rsync-path="$remote_nice rsync" $rsync_options -e \"ssh -p $src_port\" $src_user@$src_server:$sync_src_current_value $sync_dst_current_value" | tee -a $logfile
+                $local_nice $dst_path_to_rsync --rsync-path="$remote_nice rsync" $rsync_options --log-file="$logfile" -e "$remote_nice ssh -p $src_port" $src_user@$src_server:$sync_src_current_value $sync_dst_current_value
                 echo -n -e "\033${TERM_COLOR_NORMAL}"
             else
-                $local_nice $dst_path_to_rsync $rsync_options -v -e "ssh -p $src_port" $src_user@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile 2>&1
+                $local_nice $dst_path_to_rsync --rsync-path="$remote_nice rsync" $rsync_options -v -e "$remote_nice ssh -p $src_port" $src_user@$src_server:$sync_src_current_value $sync_dst_current_value >> $logfile 2>&1
             fi
         fi
         if [ "$transport_type" == "lftp" ]; then
