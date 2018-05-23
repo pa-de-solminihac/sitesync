@@ -411,7 +411,9 @@ if [ "$skip_sql" == "0" ]; then
         for fich in etc/$CONF/hook/before/*.sh;
         do
             echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
-            $local_nice source $fich;
+            cd "$path_to_sitesync"
+            source $fich;
+            cd "$path_to_sitesync"
         done
     else
         if [ "$verbose" == "0" ]; then
@@ -480,7 +482,9 @@ if [ "$skip_sql" == "0" ]; then
         for fich in etc/$CONF/hook/between/*.sh;
         do
             echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
-            $local_nice source $fich;
+            cd "$path_to_sitesync"
+            source $fich;
+            cd "$path_to_sitesync"
         done
     else
         if [ "$verbose" == "0" ]; then
@@ -591,7 +595,9 @@ if [ "$skip_files" == "0" ]; then
         for fich in etc/$CONF/hook/after/*.sh;
         do
             echo `date "+%Y-%m-%d %H:%M:%S"` >> $logfile
-            $local_nice source $fich;
+            cd "$path_to_sitesync"
+            source $fich;
+            cd "$path_to_sitesync"
         done
     else
         if [ "$verbose" == "0" ]; then
