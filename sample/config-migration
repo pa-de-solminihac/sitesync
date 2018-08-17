@@ -41,7 +41,7 @@ dst_dbpass=""
 
 # replace source URL with remote one in database
 replace_src+=("${src_site_protocol}www.${src_site_host}${src_site_slug}")
-replace_dst+=("${dst_site_protocol}${dst_site_host}${dst_site_slug}")
+replace_dst+=("${dst_site_protocol}www.${dst_site_host}${dst_site_slug}")
 
 replace_src+=("${src_site_protocol}${src_site_host}${src_site_slug}")
 replace_dst+=("${dst_site_protocol}${dst_site_host}${dst_site_slug}")
@@ -64,7 +64,7 @@ replace_dst+=(" DEFINER=\`$dst_dbuser\`@\`$dst_dbhostname\`")
 
 # replace source HOSTNAME with remote one in database
 replace_src+=("www.$src_site_host")
-replace_dst+=("$dst_site_host")
+replace_dst+=("www.$dst_site_host")
 
 replace_src+=("$src_site_host")
 replace_dst+=("$dst_site_host")
